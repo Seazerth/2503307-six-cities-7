@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {Link, useSearchParams} from 'react-router-dom';
+import CityMap from '../../components/map/map';
 import PlaceList from '../../components/place-list/place-list';
 import type {Offer} from '../../mocks/offers';
 
@@ -73,7 +74,9 @@ function MainPage({offers}: MainPageProps) {
               </form>
               <PlaceList offers={cityOffers} onOfferHover={setActiveOfferId} />
             </section>
-            <div className="cities__right-section"><section className="cities__map map" /></div>
+            <div className="cities__right-section">
+              <CityMap offers={cityOffers} activeOfferId={activeOfferId} />
+            </div>
           </div>
         </div>
       </main>

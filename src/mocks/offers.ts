@@ -1,6 +1,12 @@
+export type OfferLocation = {
+  latitude: number;
+  longitude: number;
+};
+
 export type Offer = {
   id: string;
   city: string;
+  location: OfferLocation;
   image: string;
   images: string[];
   price: number;
@@ -17,6 +23,7 @@ const offers: Offer[] = [
   {
     id: 'beautiful-luxurious-apartment',
     city: 'Amsterdam',
+    location: {latitude: 52.3909553943508, longitude: 4.85309666406198},
     image: 'apartment-01.jpg',
     images: ['room.jpg', 'apartment-01.jpg', 'apartment-02.jpg'],
     price: 120,
@@ -30,6 +37,7 @@ const offers: Offer[] = [
   {
     id: 'wood-and-stone-place',
     city: 'Amsterdam',
+    location: {latitude: 52.3609553943508, longitude: 4.85309666406198},
     image: 'room.jpg',
     images: ['room.jpg', 'studio-01.jpg'],
     price: 80,
@@ -43,6 +51,7 @@ const offers: Offer[] = [
   {
     id: 'canal-view-prinsengracht',
     city: 'Amsterdam',
+    location: {latitude: 52.3909553943508, longitude: 4.929309666406198},
     image: 'apartment-02.jpg',
     images: ['apartment-02.jpg', 'apartment-03.jpg'],
     price: 132,
@@ -55,6 +64,7 @@ const offers: Offer[] = [
   {
     id: 'nice-cozy-warm-apartment',
     city: 'Amsterdam',
+    location: {latitude: 52.3809553943508, longitude: 4.939309666406198},
     image: 'apartment-03.jpg',
     images: ['apartment-03.jpg', 'apartment-01.jpg'],
     price: 180,
