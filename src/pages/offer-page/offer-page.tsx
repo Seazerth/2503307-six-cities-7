@@ -1,18 +1,27 @@
 import {useParams} from 'react-router-dom';
+import CityMap from '../../components/map/map';
+import NearbyOfferList from '../../components/nearby-offer-list/nearby-offer-list';
+import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
 import type {Offer} from '../../mocks/offers';
+import type {Review} from '../../mocks/reviews';
+
+const MAX_NEARBY_OFFERS = 3;
 
 type OfferPageProps = {
   offers: Offer[];
+  reviews: Review[];
 };
 
-function OfferPage({offers}: OfferPageProps) {
+function OfferPage({offers, reviews}: OfferPageProps) {
   const {id} = useParams<{id: string}>();
   const offer = offers.find((item) => item.id === id) ?? offers[0];
 
   if (!offer) {
     return null;
   }
+
+  const nearbyOffers = offers.filter((item) => item.id !== offer.id).slice(0, MAX_NEARBY_OFFERS);
 
   return (
     <div className="page">
@@ -45,13 +54,20 @@ function OfferPage({offers}: OfferPageProps) {
                 <span className="offer__price-text"> night</span>
               </div>
               <section className="offer__reviews reviews">
-                <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">1</span></h2>
+                <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{reviews.length}</span></h2>
+                <ReviewList reviews={reviews} />
                 <ReviewForm />
               </section>
             </div>
           </div>
-          <section className="offer__map map" />
+          <CityMap offers={nearbyOffers} activeOfferId={null} mapClassName="offer__map map" />
         </section>
+        <div className="container">
+          <section className="near-places places">
+            <h2 className="near-places__title">Other places in the neighbourhood</h2>
+            <NearbyOfferList offers={nearbyOffers} />
+          </section>
+        </div>
       </main>
     </div>
   );

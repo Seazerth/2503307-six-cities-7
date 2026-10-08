@@ -22,9 +22,10 @@ const ACTIVE_MARKER_ICON = L.icon({
 type CityMapProps = {
   offers: Offer[];
   activeOfferId: string | null;
+  mapClassName?: string;
 };
 
-function CityMap({offers, activeOfferId}: CityMapProps) {
+function CityMap({offers, activeOfferId, mapClassName = 'cities__map map'}: CityMapProps) {
   const mapElementRef = useRef<HTMLDivElement>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
 
@@ -60,7 +61,7 @@ function CityMap({offers, activeOfferId}: CityMapProps) {
   }, [activeOfferId, offers]);
 
   return (
-    <section className="cities__map map">
+    <section className={mapClassName}>
       <div className="leaflet-map" ref={mapElementRef} />
     </section>
   );

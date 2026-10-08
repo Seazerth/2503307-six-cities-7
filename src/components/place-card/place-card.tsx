@@ -4,16 +4,17 @@ import {Offer} from '../../mocks/offers';
 type PlaceCardProps = {
   offer: Offer;
   cardClassName?: string;
+  imageWrapperClassName?: string;
   onMouseEnter?: () => void;
 };
 
-function PlaceCard({offer, cardClassName = 'cities__card', onMouseEnter}: PlaceCardProps) {
+function PlaceCard({offer, cardClassName = 'cities__card', imageWrapperClassName = 'cities__image-wrapper', onMouseEnter}: PlaceCardProps) {
   const {id, image, price, title, type, rating, isPremium = false, isFavorite = false} = offer;
 
   return (
     <article className={`${cardClassName} place-card`} onMouseEnter={onMouseEnter}>
       {isPremium && <div className="place-card__mark"><span>Premium</span></div>}
-      <div className="cities__image-wrapper place-card__image-wrapper">
+      <div className={`${imageWrapperClassName} place-card__image-wrapper`}>
         <Link to={`/offer/${id}`}>
           <img className="place-card__image" src={`img/${image}`} width="260" height="200" alt="Place image" />
         </Link>
