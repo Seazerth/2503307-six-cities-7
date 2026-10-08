@@ -1,3 +1,5 @@
+import {Link} from 'react-router-dom';
+
 function LoginPage() {
   return (
     <div className="page page--gray page--login">
@@ -18,7 +20,7 @@ function LoginPage() {
             </form>
           </section>
           <section className="locations locations--login locations--current">
-            <div className="locations__item"><a className="locations__item-link" href="#"><span>Amsterdam</span></a></div>
+            <div className="locations__item"><Link className="locations__item-link" to="/?city=Amsterdam"><span>Amsterdam</span></Link></div>
           </section>
         </div>
       </main>

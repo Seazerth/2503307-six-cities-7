@@ -1,3 +1,4 @@
+import {Link} from 'react-router-dom';
 import PlaceCard from '../../components/place-card/place-card';
 import type {Offer} from '../../mocks/offers';
 
@@ -17,7 +18,7 @@ function FavoritesPage({offers}: FavoritesPageProps) {
             <ul className="favorites__list">
               <li className="favorites__locations-items">
                 <div className="favorites__locations locations locations--current">
-                  <div className="locations__item"><a className="locations__item-link" href="#"><span>Amsterdam</span></a></div>
+                  <div className="locations__item"><Link className="locations__item-link" to="/?city=Amsterdam"><span>Amsterdam</span></Link></div>
                 </div>
                 <div className="favorites__places">
                   {favoriteOffers.map((offer) => <PlaceCard offer={offer} cardClassName="favorites__card" key={offer.id} />)}
@@ -28,7 +29,7 @@ function FavoritesPage({offers}: FavoritesPageProps) {
         </div>
       </main>
       <footer className="footer container">
-        <a className="footer__logo-link" href="#"><img className="footer__logo" src="img/logo.svg" alt="6 cities logo" width="64" height="33" /></a>
+        <Link className="footer__logo-link" to="/"><img className="footer__logo" src="img/logo.svg" alt="6 cities logo" width="64" height="33" /></Link>
       </footer>
     </div>
   );
