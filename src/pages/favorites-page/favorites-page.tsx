@@ -1,13 +1,18 @@
 import {Link} from 'react-router-dom';
+import {useSelector} from 'react-redux';
 import PlaceCard from '../../components/place-card/place-card';
 import type {Offer} from '../../mocks/offers';
+import type {RootState} from '../../store';
+import {selectFavoriteOffers} from '../../store/selectors';
 
-type FavoritesPageProps = {
-  offers: Offer[];
-};
-
-function FavoritesPage({offers}: FavoritesPageProps) {
-  const favoriteOffers = offers.filter((offer) => offer.isFavorite);
+function FavoritesPage() {
+  const favoriteOffers = useSelector((state: RootState) => selectFavoriteOffers(state));
+  const favoriteOffersByCity = favoriteOffers.reduce((cityGroups, offer) => {
+    const cityOffers = cityGroups.get(offer.city) ?? [];
+    cityOffers.push(offer);
+    cityGroups.set(offer.city, cityOffers);
+    return cityGroups;
+  }, new Map<string, Offer[]>());
 
   return (
     <div className="page">
@@ -16,14 +21,18 @@ function FavoritesPage({offers}: FavoritesPageProps) {
           <section className="favorites">
             <h1 className="favorites__title">Saved listing</h1>
             <ul className="favorites__list">
-              <li className="favorites__locations-items">
-                <div className="favorites__locations locations locations--current">
-                  <div className="locations__item"><Link className="locations__item-link" to="/?city=Amsterdam"><span>Amsterdam</span></Link></div>
-                </div>
-                <div className="favorites__places">
-                  {favoriteOffers.map((offer) => <PlaceCard offer={offer} cardClassName="favorites__card" key={offer.id} />)}
-                </div>
-              </li>
+              {Array.from(favoriteOffersByCity, ([city, cityOffers]) => (
+                <li className="favorites__locations-items" key={city}>
+                  <div className="favorites__locations locations locations--current">
+                    <div className="locations__item">
+                      <Link className="locations__item-link" to={`/?city=${encodeURIComponent(city)}`}><span>{city}</span></Link>
+                    </div>
+                  </div>
+                  <div className="favorites__places">
+                    {cityOffers.map((offer) => <PlaceCard offer={offer} cardClassName="favorites__card" key={offer.id} />)}
+                  </div>
+                </li>
+              ))}
             </ul>
           </section>
         </div>

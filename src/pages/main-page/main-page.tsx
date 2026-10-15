@@ -1,21 +1,19 @@
 import {useState} from 'react';
-import {Link, useSearchParams} from 'react-router-dom';
+import {useDispatch, useSelector} from 'react-redux';
+import {Link} from 'react-router-dom';
 import CityMap from '../../components/map/map';
+import CityList from '../../components/city-list/city-list';
 import PlaceList from '../../components/place-list/place-list';
-import type {Offer} from '../../mocks/offers';
+import {CITIES} from '../../mocks/cities';
+import {changeCity} from '../../store/action';
+import type {AppDispatch, RootState} from '../../store';
+import {selectCity, selectOffersForCity} from '../../store/selectors';
 
-const CITIES = ['Paris', 'Cologne', 'Brussels', 'Amsterdam', 'Hamburg', 'Dusseldorf'];
-const ACTIVE_CITY = 'Amsterdam';
-
-type MainPageProps = {
-  offers: Offer[];
-};
-
-function MainPage({offers}: MainPageProps) {
+function MainPage() {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
-  const [searchParams] = useSearchParams();
-  const activeCity = CITIES.find((city) => city === searchParams.get('city')) ?? ACTIVE_CITY;
-  const cityOffers = offers.filter((offer) => offer.city === activeCity);
+  const dispatch = useDispatch<AppDispatch>();
+  const activeCity = useSelector((state: RootState) => selectCity(state));
+  const cityOffers = useSelector((state: RootState) => selectOffersForCity(state));
 
   return (
     <div className="page page--gray page--main">
@@ -48,13 +46,7 @@ function MainPage({offers}: MainPageProps) {
         <h1 className="visually-hidden">Cities</h1>
         <div className="tabs">
           <section className="locations container">
-            <ul className="locations__list tabs__list">
-              {CITIES.map((city) => (
-                <li className="locations__item" key={city}>
-                  <Link className={`locations__item-link tabs__item${city === activeCity ? ' tabs__item--active' : ''}`} to={`/?city=${encodeURIComponent(city)}`}><span>{city}</span></Link>
-                </li>
-              ))}
-            </ul>
+            <CityList cities={CITIES} activeCity={activeCity} onCityChange={(city) => dispatch(changeCity(city))} />
           </section>
         </div>
         <div className="cities">
