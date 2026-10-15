@@ -3,22 +3,24 @@ import FavoritesPage from '../../pages/favorites-page/favorites-page';
 import LoginPage from '../../pages/login-page/login-page';
 import MainPage from '../../pages/main-page/main-page';
 import type {Offer} from '../../mocks/offers';
+import type {Review} from '../../mocks/reviews';
 import NotFoundPage from '../../pages/not-found-page/not-found-page';
 import OfferPage from '../../pages/offer-page/offer-page';
 import PrivateRoute from '../private-route/private-route';
 
 type AppProps = {
   offers: Offer[];
+  reviews: Review[];
 };
 
-function App({offers}: AppProps) {
+function App({offers, reviews}: AppProps) {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<MainPage offers={offers} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/favorites" element={<PrivateRoute isAuthorized={false}><FavoritesPage offers={offers} /></PrivateRoute>} />
-        <Route path="/offer/:id" element={<OfferPage offers={offers} />} />
+        <Route path="/offer/:id" element={<OfferPage offers={offers} reviews={reviews} />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
