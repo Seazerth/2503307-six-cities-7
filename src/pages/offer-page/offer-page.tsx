@@ -1,20 +1,22 @@
 import {useParams} from 'react-router-dom';
+import {useSelector} from 'react-redux';
 import CityMap from '../../components/map/map';
 import NearbyOfferList from '../../components/nearby-offer-list/nearby-offer-list';
 import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
-import type {Offer} from '../../mocks/offers';
 import type {Review} from '../../mocks/reviews';
+import type {RootState} from '../../store';
+import {selectOffers} from '../../store/selectors';
 
 const MAX_NEARBY_OFFERS = 3;
 
 type OfferPageProps = {
-  offers: Offer[];
   reviews: Review[];
 };
 
-function OfferPage({offers, reviews}: OfferPageProps) {
+function OfferPage({reviews}: OfferPageProps) {
   const {id} = useParams<{id: string}>();
+  const offers = useSelector((state: RootState) => selectOffers(state));
   const offer = offers.find((item) => item.id === id) ?? offers[0];
 
   if (!offer) {
