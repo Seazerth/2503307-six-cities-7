@@ -8,10 +8,11 @@ import SortOptions from '../../components/sort-options/sort-options';
 import {SortType} from '../../components/sort-options/sort-type';
 import {CITIES} from '../../mocks/cities';
 import type {Offer} from '../../types/offer';
-import {changeCity} from '../../store/action';
+import {changeCity, logout} from '../../store/action';
 import type {AppDispatch, RootState} from '../../store';
 import Spinner from '../../components/spinner/spinner';
-import {selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError} from '../../store/selectors';
+import {selectAuthorizationError, selectAuthorizationStatus, selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError, selectUserEmail} from '../../store/selectors';
+import {AuthorizationStatus} from '../../store/authorization-status';
 
 function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
   switch (sortType) {
@@ -34,6 +35,9 @@ function MainPage() {
   const cityOffers = useSelector((state: RootState) => selectOffersForCity(state));
   const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
   const offersLoadingError = useSelector((state: RootState) => selectOffersLoadingError(state));
+  const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
+  const userEmail = useSelector((state: RootState) => selectUserEmail(state));
+  const authorizationError = useSelector((state: RootState) => selectAuthorizationError(state));
   const sortedOffers = useMemo(() => getSortedOffers(cityOffers, sortType), [cityOffers, sortType]);
 
   return (
@@ -48,18 +52,34 @@ function MainPage() {
             </div>
             <nav className="header__nav">
               <ul className="header__nav-list">
-                <li className="header__nav-item user">
-                  <Link className="header__nav-link header__nav-link--profile" to="/favorites">
-                    <div className="header__avatar-wrapper user__avatar-wrapper" />
-                    <span className="header__user-name user__name">Oliver.conner@gmail.com</span>
-                    <span className="header__favorite-count">3</span>
-                  </Link>
-                </li>
-                <li className="header__nav-item">
-                  <button className="header__nav-link button" type="button"><span className="header__signout">Sign out</span></button>
-                </li>
+                {authorizationStatus === AuthorizationStatus.Auth ? (
+                  <>
+                    <li className="header__nav-item user">
+                      <Link className="header__nav-link header__nav-link--profile" to="/favorites">
+                        <div className="header__avatar-wrapper user__avatar-wrapper" />
+                        <span className="header__user-name user__name">{userEmail}</span>
+                      </Link>
+                    </li>
+                    <li className="header__nav-item">
+                      <button
+                        className="header__nav-link button"
+                        type="button"
+                        onClick={() => {
+                          void dispatch(logout());
+                        }}
+                      >
+                        <span className="header__signout">Sign out</span>
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <li className="header__nav-item">
+                    <Link className="header__nav-link" to="/login">Sign in</Link>
+                  </li>
+                )}
               </ul>
             </nav>
+            {authorizationError && <p role="alert">{authorizationError}</p>}
           </div>
         </div>
       </header>

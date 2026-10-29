@@ -5,6 +5,9 @@ export const selectCity = (state: AppState) => state.city;
 export const selectOffers = (state: AppState) => state.offers;
 export const selectIsOffersDataLoading = (state: AppState) => state.isOffersDataLoading;
 export const selectOffersLoadingError = (state: AppState) => state.offersLoadingError;
+export const selectAuthorizationStatus = (state: AppState) => state.authorizationStatus;
+export const selectUserEmail = (state: AppState) => state.userEmail;
+export const selectAuthorizationError = (state: AppState) => state.authorizationError;
 
 export const selectOffersForCity = createSelector(
   [selectOffers, selectCity],
