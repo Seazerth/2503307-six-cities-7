@@ -7,10 +7,11 @@ import PlaceList from '../../components/place-list/place-list';
 import SortOptions from '../../components/sort-options/sort-options';
 import {SortType} from '../../components/sort-options/sort-type';
 import {CITIES} from '../../mocks/cities';
-import type {Offer} from '../../mocks/offers';
+import type {Offer} from '../../types/offer';
 import {changeCity} from '../../store/action';
 import type {AppDispatch, RootState} from '../../store';
-import {selectCity, selectOffersForCity} from '../../store/selectors';
+import Spinner from '../../components/spinner/spinner';
+import {selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError} from '../../store/selectors';
 
 function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
   switch (sortType) {
@@ -31,6 +32,8 @@ function MainPage() {
   const dispatch = useDispatch<AppDispatch>();
   const activeCity = useSelector((state: RootState) => selectCity(state));
   const cityOffers = useSelector((state: RootState) => selectOffersForCity(state));
+  const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
+  const offersLoadingError = useSelector((state: RootState) => selectOffersLoadingError(state));
   const sortedOffers = useMemo(() => getSortedOffers(cityOffers, sortType), [cityOffers, sortType]);
 
   return (
@@ -71,9 +74,15 @@ function MainPage() {
           <div className="cities__places-container container">
             <section className="cities__places places" data-active-offer={activeOfferId ?? undefined}>
               <h2 className="visually-hidden">Places</h2>
-              <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
-              <SortOptions sortType={sortType} onSortChange={setSortType} />
-              <PlaceList offers={sortedOffers} onOfferHover={setActiveOfferId} />
+              {isOffersDataLoading && <Spinner />}
+              {!isOffersDataLoading && offersLoadingError && <p role="alert">Could not load offers: {offersLoadingError}</p>}
+              {!isOffersDataLoading && !offersLoadingError && (
+                <>
+                  <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
+                  <SortOptions sortType={sortType} onSortChange={setSortType} />
+                  <PlaceList offers={sortedOffers} onOfferHover={setActiveOfferId} />
+                </>
+              )}
             </section>
             <div className="cities__right-section">
               <CityMap offers={sortedOffers} activeOfferId={activeOfferId} />
