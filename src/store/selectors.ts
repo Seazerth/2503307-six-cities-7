@@ -3,6 +3,8 @@ import type {AppState} from './reducer';
 
 export const selectCity = (state: AppState) => state.city;
 export const selectOffers = (state: AppState) => state.offers;
+export const selectIsOffersDataLoading = (state: AppState) => state.isOffersDataLoading;
+export const selectOffersLoadingError = (state: AppState) => state.offersLoadingError;
 
 export const selectOffersForCity = createSelector(
   [selectOffers, selectCity],

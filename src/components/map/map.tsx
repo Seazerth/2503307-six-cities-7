@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './map.css';
-import type {Offer} from '../../mocks/offers';
+import type {Offer} from '../../types/offer';
 
 const AMSTERDAM_CENTER: [number, number] = [52.37403, 4.88969];
 const INITIAL_ZOOM = 12;

@@ -5,8 +5,9 @@ import NearbyOfferList from '../../components/nearby-offer-list/nearby-offer-lis
 import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
 import type {Review} from '../../mocks/reviews';
+import Spinner from '../../components/spinner/spinner';
 import type {RootState} from '../../store';
-import {selectOffers} from '../../store/selectors';
+import {selectIsOffersDataLoading, selectOffers} from '../../store/selectors';
 
 const MAX_NEARBY_OFFERS = 3;
 
@@ -17,7 +18,12 @@ type OfferPageProps = {
 function OfferPage({reviews}: OfferPageProps) {
   const {id} = useParams<{id: string}>();
   const offers = useSelector((state: RootState) => selectOffers(state));
+  const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
   const offer = offers.find((item) => item.id === id) ?? offers[0];
+
+  if (isOffersDataLoading && !offer) {
+    return <Spinner />;
+  }
 
   if (!offer) {
     return null;
