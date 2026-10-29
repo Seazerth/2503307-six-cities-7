@@ -3,10 +3,11 @@ import ReactDOM from 'react-dom/client';
 import {Provider} from 'react-redux';
 import App from './components/app/app';
 import reviews from './mocks/reviews';
-import {fetchOffers} from './store/action';
+import {checkAuth, fetchOffers} from './store/action';
 import {store} from './store';
 
 store.dispatch(fetchOffers());
+store.dispatch(checkAuth());
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

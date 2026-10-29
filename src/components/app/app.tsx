@@ -17,7 +17,7 @@ function App({reviews}: AppProps) {
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/favorites" element={<PrivateRoute isAuthorized={false}><FavoritesPage /></PrivateRoute>} />
+        <Route path="/favorites" element={<PrivateRoute><FavoritesPage /></PrivateRoute>} />
         <Route path="/offer/:id" element={<OfferPage reviews={reviews} />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
