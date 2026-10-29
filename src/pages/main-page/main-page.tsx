@@ -1,19 +1,40 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import CityMap from '../../components/map/map';
 import CityList from '../../components/city-list/city-list';
 import PlaceList from '../../components/place-list/place-list';
+import SortOptions from '../../components/sort-options/sort-options';
+import {SortType} from '../../components/sort-options/sort-type';
 import {CITIES} from '../../mocks/cities';
+import type {Offer} from '../../types/offer';
 import {changeCity} from '../../store/action';
 import type {AppDispatch, RootState} from '../../store';
-import {selectCity, selectOffersForCity} from '../../store/selectors';
+import Spinner from '../../components/spinner/spinner';
+import {selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError} from '../../store/selectors';
+
+function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
+  switch (sortType) {
+    case SortType.PriceLowToHigh:
+      return [...offers].sort((firstOffer, secondOffer) => firstOffer.price - secondOffer.price);
+    case SortType.PriceHighToLow:
+      return [...offers].sort((firstOffer, secondOffer) => secondOffer.price - firstOffer.price);
+    case SortType.TopRatedFirst:
+      return [...offers].sort((firstOffer, secondOffer) => secondOffer.rating - firstOffer.rating);
+    case SortType.Popular:
+      return offers;
+  }
+}
 
 function MainPage() {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  const [sortType, setSortType] = useState(SortType.Popular);
   const dispatch = useDispatch<AppDispatch>();
   const activeCity = useSelector((state: RootState) => selectCity(state));
   const cityOffers = useSelector((state: RootState) => selectOffersForCity(state));
+  const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
+  const offersLoadingError = useSelector((state: RootState) => selectOffersLoadingError(state));
+  const sortedOffers = useMemo(() => getSortedOffers(cityOffers, sortType), [cityOffers, sortType]);
 
   return (
     <div className="page page--gray page--main">
@@ -53,21 +74,18 @@ function MainPage() {
           <div className="cities__places-container container">
             <section className="cities__places places" data-active-offer={activeOfferId ?? undefined}>
               <h2 className="visually-hidden">Places</h2>
-              <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
-              <form className="places__sorting" action="#" method="get">
-                <span className="places__sorting-caption">Sort by</span>
-                <span className="places__sorting-type" tabIndex={0}>Popular<svg className="places__sorting-arrow" width="7" height="4"><use xlinkHref="#icon-arrow-select" /></svg></span>
-                <ul className="places__options places__options--custom places__options--opened">
-                  <li className="places__option places__option--active" tabIndex={0}>Popular</li>
-                  <li className="places__option" tabIndex={0}>Price: low to high</li>
-                  <li className="places__option" tabIndex={0}>Price: high to low</li>
-                  <li className="places__option" tabIndex={0}>Top rated first</li>
-                </ul>
-              </form>
-              <PlaceList offers={cityOffers} onOfferHover={setActiveOfferId} />
+              {isOffersDataLoading && <Spinner />}
+              {!isOffersDataLoading && offersLoadingError && <p role="alert">Could not load offers: {offersLoadingError}</p>}
+              {!isOffersDataLoading && !offersLoadingError && (
+                <>
+                  <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
+                  <SortOptions sortType={sortType} onSortChange={setSortType} />
+                  <PlaceList offers={sortedOffers} onOfferHover={setActiveOfferId} />
+                </>
+              )}
             </section>
             <div className="cities__right-section">
-              <CityMap offers={cityOffers} activeOfferId={activeOfferId} />
+              <CityMap offers={sortedOffers} activeOfferId={activeOfferId} />
             </div>
           </div>
         </div>

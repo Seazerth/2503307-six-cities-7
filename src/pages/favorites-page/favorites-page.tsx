@@ -1,7 +1,7 @@
 import {Link} from 'react-router-dom';
 import {useSelector} from 'react-redux';
 import PlaceCard from '../../components/place-card/place-card';
-import type {Offer} from '../../mocks/offers';
+import type {Offer} from '../../types/offer';
 import type {RootState} from '../../store';
 import {selectFavoriteOffers} from '../../store/selectors';
 
