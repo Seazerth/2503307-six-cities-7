@@ -1,35 +1,67 @@
-import {useParams} from 'react-router-dom';
-import {useSelector} from 'react-redux';
+import {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import {Link, Navigate, useParams} from 'react-router-dom';
 import CityMap from '../../components/map/map';
 import NearbyOfferList from '../../components/nearby-offer-list/nearby-offer-list';
 import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
-import type {Review} from '../../mocks/reviews';
 import Spinner from '../../components/spinner/spinner';
-import type {RootState} from '../../store';
-import {selectIsOffersDataLoading, selectOffers} from '../../store/selectors';
+import {AuthorizationStatus} from '../../store/authorization-status';
+import type {AppDispatch, RootState} from '../../store';
+import {fetchOfferData} from '../../store/action';
+import {
+  selectActiveOffer,
+  selectAuthorizationStatus,
+  selectIsOfferDataLoading,
+  selectIsOfferNotFound,
+  selectNearbyOffers,
+  selectOfferDataError,
+  selectOfferDataId,
+  selectReviews,
+} from '../../store/selectors';
 
 const MAX_NEARBY_OFFERS = 3;
+const MAX_REVIEWS = 10;
 
-type OfferPageProps = {
-  reviews: Review[];
-};
-
-function OfferPage({reviews}: OfferPageProps) {
+function OfferPage() {
   const {id} = useParams<{id: string}>();
-  const offers = useSelector((state: RootState) => selectOffers(state));
-  const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
-  const offer = offers.find((item) => item.id === id) ?? offers[0];
+  const dispatch = useDispatch<AppDispatch>();
+  const offer = useSelector((state: RootState) => selectActiveOffer(state));
+  const nearbyOffers = useSelector((state: RootState) => selectNearbyOffers(state));
+  const reviews = useSelector((state: RootState) => selectReviews(state));
+  const offerDataId = useSelector((state: RootState) => selectOfferDataId(state));
+  const isOfferDataLoading = useSelector((state: RootState) => selectIsOfferDataLoading(state));
+  const offerDataError = useSelector((state: RootState) => selectOfferDataError(state));
+  const isOfferNotFound = useSelector((state: RootState) => selectIsOfferNotFound(state));
+  const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
 
-  if (isOffersDataLoading && !offer) {
+  useEffect(() => {
+    if (id) {
+      void dispatch(fetchOfferData(id));
+    }
+  }, [dispatch, id]);
+
+  if (!id || (offerDataId === id && isOfferNotFound)) {
+    return <Navigate to="/404" replace />;
+  }
+
+  if (offerDataId !== id || isOfferDataLoading) {
     return <Spinner />;
   }
 
-  if (!offer) {
-    return null;
+  if (offerDataError || !offer) {
+    return (
+      <main className="page__main">
+        <p role="alert">{offerDataError ?? 'Could not load this offer.'}</p>
+        <Link to="/">Return to the main page</Link>
+      </main>
+    );
   }
 
-  const nearbyOffers = offers.filter((item) => item.id !== offer.id).slice(0, MAX_NEARBY_OFFERS);
+  const displayedNearbyOffers = nearbyOffers.slice(0, MAX_NEARBY_OFFERS);
+  const displayedReviews = [...reviews]
+    .sort((firstReview, secondReview) => Date.parse(secondReview.date) - Date.parse(firstReview.date))
+    .slice(0, MAX_REVIEWS);
 
   return (
     <div className="page">
@@ -39,7 +71,7 @@ function OfferPage({reviews}: OfferPageProps) {
             <div className="offer__gallery">
               {offer.images.map((image) => (
                 <div className="offer__image-wrapper" key={image}>
-                  <img className="offer__image" src={`img/${image}`} alt="Photo studio" />
+                  <img className="offer__image" src={image} alt={offer.title} />
                 </div>
               ))}
             </div>
@@ -63,17 +95,21 @@ function OfferPage({reviews}: OfferPageProps) {
               </div>
               <section className="offer__reviews reviews">
                 <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{reviews.length}</span></h2>
-                <ReviewList reviews={reviews} />
-                <ReviewForm />
+                <ReviewList reviews={displayedReviews} />
+                {authorizationStatus === AuthorizationStatus.Auth && <ReviewForm offerId={offer.id} />}
               </section>
             </div>
           </div>
-          <CityMap offers={nearbyOffers} activeOfferId={null} mapClassName="offer__map map" />
+          <CityMap
+            offers={[offer, ...displayedNearbyOffers]}
+            activeOfferId={offer.id}
+            mapClassName="offer__map map"
+          />
         </section>
         <div className="container">
           <section className="near-places places">
             <h2 className="near-places__title">Other places in the neighbourhood</h2>
-            <NearbyOfferList offers={nearbyOffers} />
+            <NearbyOfferList offers={displayedNearbyOffers} />
           </section>
         </div>
       </main>

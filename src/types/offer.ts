@@ -24,4 +24,5 @@ export type ApiOffer = Omit<Offer, 'city' | 'image' | 'images'> & {
     name: string;
   };
   previewImage: string;
+  images?: string[];
 };
