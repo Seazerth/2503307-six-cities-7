@@ -3,6 +3,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useSearchParams} from 'react-router-dom';
 import CityMap from '../../components/map/map';
 import CityList from '../../components/city-list/city-list';
+import EmptyOffers from '../../components/empty-offers/empty-offers';
 import PlaceList from '../../components/place-list/place-list';
 import SortOptions from '../../components/sort-options/sort-options';
 import {SortType} from '../../components/sort-options/sort-type';
@@ -77,12 +78,7 @@ function MainPage() {
             {isOffersDataLoading && <section className="cities__places places"><Spinner /></section>}
             {!isOffersDataLoading && offersLoadingError && <section className="cities__places places"><p role="alert">Could not load offers: {offersLoadingError}</p></section>}
             {!isOffersDataLoading && !offersLoadingError && cityOffers.length === 0 && (
-              <section className="cities__no-places">
-                <div className="cities__status-wrapper tabs__content">
-                  <b className="cities__status">No places to stay available</b>
-                  <p className="cities__status-description">We could not find any property available at the moment in {activeCity}</p>
-                </div>
-              </section>
+              <EmptyOffers city={activeCity} />
             )}
             {!isOffersDataLoading && !offersLoadingError && cityOffers.length > 0 && (
               <section className="cities__places places" data-active-offer={activeOfferId ?? undefined}>
