@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://7.react.pages.academy/six-cities';
+const API_URL = 'https://14.design.htmlacademy.pro/six-cities';
 const REQUEST_TIMEOUT = 5000;
 
 export const createAPI = () => axios.create({

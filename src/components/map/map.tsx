@@ -1,10 +1,10 @@
-import {useEffect, useRef} from 'react';
+import {memo, useEffect, useRef} from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './map.css';
 import type {Offer} from '../../types/offer';
 
-const AMSTERDAM_CENTER: [number, number] = [52.37403, 4.88969];
+const DEFAULT_CENTER: [number, number] = [48.85661, 2.351499];
 const INITIAL_ZOOM = 12;
 const TILE_LAYER_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILE_LAYER_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -22,28 +22,42 @@ const ACTIVE_MARKER_ICON = L.icon({
 type CityMapProps = {
   offers: Offer[];
   activeOfferId: string | null;
+  center?: [number, number];
+  zoom?: number;
   mapClassName?: string;
 };
 
-function CityMap({offers, activeOfferId, mapClassName = 'cities__map map'}: CityMapProps) {
+const CityMap = memo(({offers, activeOfferId, center = DEFAULT_CENTER, zoom = INITIAL_ZOOM, mapClassName = 'cities__map map'}: CityMapProps) => {
   const mapElementRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+  const initialCenterRef = useRef(center);
+  const initialZoomRef = useRef(zoom);
 
   useEffect(() => {
     const mapElement = mapElementRef.current;
+    const markers = markersRef.current;
     if (!mapElement) {
       return;
     }
 
-    const map = L.map(mapElement).setView(AMSTERDAM_CENTER, INITIAL_ZOOM);
+    const map = L.map(mapElement).setView(initialCenterRef.current, initialZoomRef.current);
     L.tileLayer(TILE_LAYER_URL, {attribution: TILE_LAYER_ATTRIBUTION}).addTo(map);
     markerLayerRef.current = L.layerGroup().addTo(map);
+    mapRef.current = map;
 
     return () => {
       map.remove();
+      mapRef.current = null;
       markerLayerRef.current = null;
+      markers.clear();
     };
   }, []);
+
+  useEffect(() => {
+    mapRef.current?.setView(center, zoom);
+  }, [center, zoom]);
 
   useEffect(() => {
     const markerLayer = markerLayerRef.current;
@@ -52,19 +66,26 @@ function CityMap({offers, activeOfferId, mapClassName = 'cities__map map'}: City
     }
 
     markerLayer.clearLayers();
+    markersRef.current.clear();
     offers.forEach((offer) => {
       const {latitude, longitude} = offer.location;
-      L.marker([latitude, longitude], {
-        icon: offer.id === activeOfferId ? ACTIVE_MARKER_ICON : DEFAULT_MARKER_ICON,
-      }).addTo(markerLayer);
+      const marker = L.marker([latitude, longitude], {icon: DEFAULT_MARKER_ICON}).addTo(markerLayer);
+      markersRef.current.set(offer.id, marker);
     });
-  }, [activeOfferId, offers]);
+  }, [offers]);
+
+  useEffect(() => {
+    markersRef.current.forEach((marker, offerId) => {
+      marker.setIcon(offerId === activeOfferId ? ACTIVE_MARKER_ICON : DEFAULT_MARKER_ICON);
+    });
+  }, [activeOfferId]);
 
   return (
     <section className={mapClassName}>
       <div className="leaflet-map" ref={mapElementRef} />
     </section>
   );
-}
+});
 
+CityMap.displayName = 'CityMap';
 export default CityMap;

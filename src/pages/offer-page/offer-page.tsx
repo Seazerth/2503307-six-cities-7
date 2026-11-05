@@ -1,10 +1,11 @@
-import {useEffect} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, Navigate, useParams} from 'react-router-dom';
 import CityMap from '../../components/map/map';
 import NearbyOfferList from '../../components/nearby-offer-list/nearby-offer-list';
 import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
+import FavoriteButton from '../../components/favorite-button/favorite-button';
 import Spinner from '../../components/spinner/spinner';
 import {AuthorizationStatus} from '../../store/authorization-status';
 import type {AppDispatch, RootState} from '../../store';
@@ -17,7 +18,9 @@ import {
   selectNearbyOffers,
   selectOfferDataError,
   selectOfferDataId,
-  selectReviews,
+  selectRawActiveOffer,
+  selectRawNearbyOffers,
+  selectSortedReviews,
 } from '../../store/selectors';
 
 const MAX_NEARBY_OFFERS = 3;
@@ -28,12 +31,25 @@ function OfferPage() {
   const dispatch = useDispatch<AppDispatch>();
   const offer = useSelector((state: RootState) => selectActiveOffer(state));
   const nearbyOffers = useSelector((state: RootState) => selectNearbyOffers(state));
-  const reviews = useSelector((state: RootState) => selectReviews(state));
+  const rawOffer = useSelector((state: RootState) => selectRawActiveOffer(state));
+  const rawNearbyOffers = useSelector((state: RootState) => selectRawNearbyOffers(state));
+  const sortedReviews = useSelector((state: RootState) => selectSortedReviews(state));
   const offerDataId = useSelector((state: RootState) => selectOfferDataId(state));
   const isOfferDataLoading = useSelector((state: RootState) => selectIsOfferDataLoading(state));
   const offerDataError = useSelector((state: RootState) => selectOfferDataError(state));
   const isOfferNotFound = useSelector((state: RootState) => selectIsOfferNotFound(state));
   const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
+  const displayedNearbyOffers = useMemo(() => nearbyOffers.slice(0, MAX_NEARBY_OFFERS), [nearbyOffers]);
+  const displayedReviews = useMemo(() => sortedReviews.slice(0, MAX_REVIEWS), [sortedReviews]);
+  const mapOffers = useMemo(() => rawOffer ? [rawOffer, ...rawNearbyOffers.slice(0, MAX_NEARBY_OFFERS)] : [], [rawNearbyOffers, rawOffer]);
+  const offerLatitude = offer?.cityLocation.latitude;
+  const offerLongitude = offer?.cityLocation.longitude;
+  const mapCenter = useMemo<[number, number]>(
+    () => offerLatitude !== undefined && offerLongitude !== undefined
+      ? [offerLatitude, offerLongitude]
+      : [48.85661, 2.351499],
+    [offerLatitude, offerLongitude]
+  );
 
   useEffect(() => {
     if (id) {
@@ -58,11 +74,6 @@ function OfferPage() {
     );
   }
 
-  const displayedNearbyOffers = nearbyOffers.slice(0, MAX_NEARBY_OFFERS);
-  const displayedReviews = [...reviews]
-    .sort((firstReview, secondReview) => Date.parse(secondReview.date) - Date.parse(firstReview.date))
-    .slice(0, MAX_REVIEWS);
-
   return (
     <div className="page">
       <main className="page__main page__main--offer">
@@ -79,30 +90,67 @@ function OfferPage() {
           <div className="offer__container container">
             <div className="offer__wrapper">
               {offer.isPremium && <div className="offer__mark"><span>Premium</span></div>}
-              <h1 className="offer__name">{offer.title}</h1>
+              <div className="offer__name-wrapper">
+                <h1 className="offer__name">{offer.title}</h1>
+                <FavoriteButton
+                  offerId={offer.id}
+                  isFavorite={offer.isFavorite}
+                  className="offer__bookmark-button"
+                  iconClassName="offer__bookmark-icon"
+                  iconWidth={31}
+                  iconHeight={33}
+                />
+              </div>
               <div className="offer__rating rating">
-                <div className="offer__stars rating__stars"><span style={{width: `${offer.rating * 20}%`}} /></div>
+                <div className="offer__stars rating__stars"><span style={{width: `${Math.round(offer.rating) * 20}%`}} /></div>
                 <span className="offer__rating-value rating__value">{offer.rating}</span>
               </div>
               <ul className="offer__features">
                 <li className="offer__feature offer__feature--entire">{offer.type}</li>
                 <li className="offer__feature offer__feature--bedrooms">{offer.bedrooms} Bedrooms</li>
-                <li className="offer__feature offer__feature--adults">Max {offer.maxAdults} adults</li>
+                <li className="offer__feature offer__feature--adults">
+                  Max {offer.maxAdults} {offer.maxAdults === 1 ? 'adult' : 'adults'}
+                </li>
               </ul>
               <div className="offer__price">
                 <b className="offer__price-value">&euro;{offer.price}</b>
                 <span className="offer__price-text"> night</span>
               </div>
+              <div className="offer__inside">
+                <h2 className="offer__inside-title">What&apos;s inside</h2>
+                <ul className="offer__inside-list">
+                  {offer.goods?.map((good) => <li className="offer__inside-item" key={good}>{good}</li>)}
+                </ul>
+              </div>
+              {offer.host && (
+                <div className="offer__host">
+                  <h2 className="offer__host-title">Meet the host</h2>
+                  <div className="offer__host-user user">
+                    <div className={`offer__avatar-wrapper user__avatar-wrapper${offer.host.isPro ? ' offer__avatar-wrapper--pro' : ''}`}>
+                      <img className="offer__avatar user__avatar" src={offer.host.avatarUrl} width="74" height="74" alt={`${offer.host.name}'s avatar`} />
+                    </div>
+                    <span className="offer__user-name">{offer.host.name}</span>
+                    {offer.host.isPro && <span className="offer__user-status">Pro</span>}
+                  </div>
+                </div>
+              )}
+              {offer.description && (
+                <div className="offer__description">
+                  <p className="offer__text">{offer.description}</p>
+                </div>
+              )}
               <section className="offer__reviews reviews">
-                <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{reviews.length}</span></h2>
+                <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{sortedReviews.length}</span></h2>
                 <ReviewList reviews={displayedReviews} />
                 {authorizationStatus === AuthorizationStatus.Auth && <ReviewForm offerId={offer.id} />}
               </section>
             </div>
           </div>
           <CityMap
-            offers={[offer, ...displayedNearbyOffers]}
+            offers={mapOffers}
             activeOfferId={offer.id}
+            center={mapCenter}
+            zoom={offer.cityLocation.zoom}
             mapClassName="offer__map map"
           />
         </section>

@@ -1,15 +1,18 @@
 import {Link, Navigate} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
+import {useState} from 'react';
 import type {FormEvent} from 'react';
 import type {AppDispatch, RootState} from '../../store';
 import {login} from '../../store/action';
 import {AuthorizationStatus} from '../../store/authorization-status';
 import {selectAuthorizationError, selectAuthorizationStatus} from '../../store/selectors';
+import {CITIES} from '../../mocks/cities';
 
 function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
   const authorizationError = useSelector((state: RootState) => selectAuthorizationError(state));
+  const [randomCity] = useState(() => CITIES[Math.floor(Math.random() * CITIES.length)] ?? CITIES[0]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,14 +40,14 @@ function LoginPage() {
               </div>
               <div className="login__input-wrapper form__input-wrapper">
                 <label className="visually-hidden" htmlFor="password">Password</label>
-                <input className="login__input form__input" id="password" type="password" name="password" placeholder="Password" pattern=".*\S.*" title="Password must not consist only of spaces." required />
+                <input className="login__input form__input" id="password" type="password" name="password" placeholder="Password" pattern="(?=.*[A-Za-z])(?=.*[0-9]).+" title="Password must contain at least one letter and one number." required />
               </div>
               {authorizationError && <p role="alert">{authorizationError}</p>}
               <button className="login__submit form__submit button" type="submit" disabled={authorizationStatus === AuthorizationStatus.Unknown}>Sign in</button>
             </form>
           </section>
           <section className="locations locations--login locations--current">
-            <div className="locations__item"><Link className="locations__item-link" to="/?city=Amsterdam"><span>Amsterdam</span></Link></div>
+            <div className="locations__item"><Link className="locations__item-link" to={`/?city=${encodeURIComponent(randomCity)}`}><span>{randomCity}</span></Link></div>
           </section>
         </div>
       </main>

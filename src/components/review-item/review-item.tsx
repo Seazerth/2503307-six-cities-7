@@ -1,10 +1,11 @@
+import {memo} from 'react';
 import type {Review} from '../../types/review';
 
 type ReviewItemProps = {
   review: Review;
 };
 
-function ReviewItem({review}: ReviewItemProps) {
+const ReviewItem = memo(({review}: ReviewItemProps) => {
   const reviewDate = new Date(review.date);
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     month: 'long',
@@ -32,6 +33,7 @@ function ReviewItem({review}: ReviewItemProps) {
       </div>
     </li>
   );
-}
+});
 
+ReviewItem.displayName = 'ReviewItem';
 export default ReviewItem;
