@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {memo, useState} from 'react';
 import type {KeyboardEvent} from 'react';
 import {SortType} from './sort-type';
 
@@ -9,7 +9,7 @@ type SortOptionsProps = {
   onSortChange: (sortType: SortType) => void;
 };
 
-function SortOptions({sortType, onSortChange}: SortOptionsProps) {
+const SortOptions = memo(({sortType, onSortChange}: SortOptionsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleToggleClick = () => {
@@ -70,6 +70,7 @@ function SortOptions({sortType, onSortChange}: SortOptionsProps) {
       </ul>
     </div>
   );
-}
+});
 
+SortOptions.displayName = 'SortOptions';
 export default SortOptions;

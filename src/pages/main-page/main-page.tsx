@@ -1,6 +1,6 @@
-import {useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {Link} from 'react-router-dom';
+import {useSearchParams} from 'react-router-dom';
 import CityMap from '../../components/map/map';
 import CityList from '../../components/city-list/city-list';
 import PlaceList from '../../components/place-list/place-list';
@@ -8,11 +8,10 @@ import SortOptions from '../../components/sort-options/sort-options';
 import {SortType} from '../../components/sort-options/sort-type';
 import {CITIES} from '../../mocks/cities';
 import type {Offer} from '../../types/offer';
-import {changeCity, logout} from '../../store/action';
+import {changeCity} from '../../store/action';
 import type {AppDispatch, RootState} from '../../store';
 import Spinner from '../../components/spinner/spinner';
-import {selectAuthorizationError, selectAuthorizationStatus, selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError, selectUserEmail} from '../../store/selectors';
-import {AuthorizationStatus} from '../../store/authorization-status';
+import {selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError, selectRawOffersForCity} from '../../store/selectors';
 
 function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
   switch (sortType) {
@@ -30,83 +29,80 @@ function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
 function MainPage() {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
   const [sortType, setSortType] = useState(SortType.Popular);
+  const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch<AppDispatch>();
   const activeCity = useSelector((state: RootState) => selectCity(state));
   const cityOffers = useSelector((state: RootState) => selectOffersForCity(state));
+  const rawCityOffers = useSelector((state: RootState) => selectRawOffersForCity(state));
   const isOffersDataLoading = useSelector((state: RootState) => selectIsOffersDataLoading(state));
   const offersLoadingError = useSelector((state: RootState) => selectOffersLoadingError(state));
-  const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
-  const userEmail = useSelector((state: RootState) => selectUserEmail(state));
-  const authorizationError = useSelector((state: RootState) => selectAuthorizationError(state));
   const sortedOffers = useMemo(() => getSortedOffers(cityOffers, sortType), [cityOffers, sortType]);
+  const cityLocation = rawCityOffers[0]?.cityLocation;
+  const cityLatitude = cityLocation?.latitude;
+  const cityLongitude = cityLocation?.longitude;
+  const mapCenter = useMemo<[number, number]>(
+    () => cityLatitude !== undefined && cityLongitude !== undefined
+      ? [cityLatitude, cityLongitude]
+      : [48.85661, 2.351499],
+    [cityLatitude, cityLongitude]
+  );
+
+  useEffect(() => {
+    const cityFromUrl = searchParams.get('city');
+    if (cityFromUrl && CITIES.includes(cityFromUrl) && cityFromUrl !== activeCity) {
+      dispatch(changeCity(cityFromUrl));
+    }
+  }, [activeCity, dispatch, searchParams]);
+
+  const handleCityChange = useCallback((city: string) => {
+    dispatch(changeCity(city));
+    setSearchParams({city});
+  }, [dispatch, setSearchParams]);
+
+  const handleOfferHover = useCallback((offerId: string) => {
+    setActiveOfferId(offerId);
+  }, []);
 
   return (
     <div className="page page--gray page--main">
-      <header className="header">
-        <div className="container">
-          <div className="header__wrapper">
-            <div className="header__left">
-              <Link className="header__logo-link header__logo-link--active" to="/">
-                <img className="header__logo" src="img/logo.svg" alt="6 cities logo" width="81" height="41" />
-              </Link>
-            </div>
-            <nav className="header__nav">
-              <ul className="header__nav-list">
-                {authorizationStatus === AuthorizationStatus.Auth ? (
-                  <>
-                    <li className="header__nav-item user">
-                      <Link className="header__nav-link header__nav-link--profile" to="/favorites">
-                        <div className="header__avatar-wrapper user__avatar-wrapper" />
-                        <span className="header__user-name user__name">{userEmail}</span>
-                      </Link>
-                    </li>
-                    <li className="header__nav-item">
-                      <button
-                        className="header__nav-link button"
-                        type="button"
-                        onClick={() => {
-                          void dispatch(logout());
-                        }}
-                      >
-                        <span className="header__signout">Sign out</span>
-                      </button>
-                    </li>
-                  </>
-                ) : (
-                  <li className="header__nav-item">
-                    <Link className="header__nav-link" to="/login">Sign in</Link>
-                  </li>
-                )}
-              </ul>
-            </nav>
-            {authorizationError && <p role="alert">{authorizationError}</p>}
-          </div>
-        </div>
-      </header>
-      <main className="page__main page__main--index">
+      <main className={`page__main page__main--index${!isOffersDataLoading && !offersLoadingError && cityOffers.length === 0 ? ' page__main--index-empty' : ''}`}>
         <h1 className="visually-hidden">Cities</h1>
         <div className="tabs">
           <section className="locations container">
-            <CityList cities={CITIES} activeCity={activeCity} onCityChange={(city) => dispatch(changeCity(city))} />
+            <CityList cities={CITIES} activeCity={activeCity} onCityChange={handleCityChange} />
           </section>
         </div>
         <div className="cities">
-          <div className="cities__places-container container">
-            <section className="cities__places places" data-active-offer={activeOfferId ?? undefined}>
-              <h2 className="visually-hidden">Places</h2>
-              {isOffersDataLoading && <Spinner />}
-              {!isOffersDataLoading && offersLoadingError && <p role="alert">Could not load offers: {offersLoadingError}</p>}
-              {!isOffersDataLoading && !offersLoadingError && (
-                <>
-                  <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
-                  <SortOptions sortType={sortType} onSortChange={setSortType} />
-                  <PlaceList offers={sortedOffers} onOfferHover={setActiveOfferId} />
-                </>
-              )}
-            </section>
-            <div className="cities__right-section">
-              <CityMap offers={sortedOffers} activeOfferId={activeOfferId} />
-            </div>
+          <div className={`cities__places-container${!isOffersDataLoading && !offersLoadingError && cityOffers.length === 0 ? ' cities__places-container--empty' : ''} container`}>
+            {isOffersDataLoading && <section className="cities__places places"><Spinner /></section>}
+            {!isOffersDataLoading && offersLoadingError && <section className="cities__places places"><p role="alert">Could not load offers: {offersLoadingError}</p></section>}
+            {!isOffersDataLoading && !offersLoadingError && cityOffers.length === 0 && (
+              <section className="cities__no-places">
+                <div className="cities__status-wrapper tabs__content">
+                  <b className="cities__status">No places to stay available</b>
+                  <p className="cities__status-description">We could not find any property available at the moment in {activeCity}</p>
+                </div>
+              </section>
+            )}
+            {!isOffersDataLoading && !offersLoadingError && cityOffers.length > 0 && (
+              <section className="cities__places places" data-active-offer={activeOfferId ?? undefined}>
+                <h2 className="visually-hidden">Places</h2>
+                <b className="places__found">{cityOffers.length} places to stay in {activeCity}</b>
+                <SortOptions sortType={sortType} onSortChange={setSortType} />
+                <PlaceList offers={sortedOffers} onOfferHover={handleOfferHover} />
+              </section>
+            )}
+            {cityOffers.length > 0 && (
+              <div className="cities__right-section">
+                <CityMap
+                  offers={rawCityOffers}
+                  activeOfferId={activeOfferId}
+                  center={mapCenter}
+                  zoom={cityLocation?.zoom ?? 13}
+                />
+              </div>
+            )}
+            {cityOffers.length === 0 && <div className="cities__right-section" />}
           </div>
         </div>
       </main>

@@ -1,3 +1,4 @@
+import {memo} from 'react';
 import PlaceCard from '../place-card/place-card';
 import type {Offer} from '../../types/offer';
 
@@ -6,8 +7,11 @@ type PlaceListProps = {
   onOfferHover: (offerId: string) => void;
 };
 
-function PlaceList({offers, onOfferHover}: PlaceListProps) {
-  return <div className="cities__places-list places__list tabs__content">{offers.map((offer) => <PlaceCard offer={offer} key={offer.id} onMouseEnter={() => onOfferHover(offer.id)} />)}</div>;
-}
+const PlaceList = memo(({offers, onOfferHover}: PlaceListProps) => (
+  <div className="cities__places-list places__list tabs__content">
+    {offers.map((offer) => <PlaceCard offer={offer} key={offer.id} onOfferHover={onOfferHover} />)}
+  </div>
+));
 
+PlaceList.displayName = 'PlaceList';
 export default PlaceList;

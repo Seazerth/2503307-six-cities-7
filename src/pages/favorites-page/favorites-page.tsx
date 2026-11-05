@@ -1,45 +1,71 @@
+import {useMemo} from 'react';
 import {Link} from 'react-router-dom';
 import {useSelector} from 'react-redux';
 import PlaceCard from '../../components/place-card/place-card';
 import type {Offer} from '../../types/offer';
 import type {RootState} from '../../store';
-import {selectFavoriteOffers} from '../../store/selectors';
+import Spinner from '../../components/spinner/spinner';
+import {selectFavoriteOffers, selectFavoritesError, selectFavoritesLoading} from '../../store/selectors';
 
 function FavoritesPage() {
   const favoriteOffers = useSelector((state: RootState) => selectFavoriteOffers(state));
-  const favoriteOffersByCity = favoriteOffers.reduce((cityGroups, offer) => {
+  const isFavoritesLoading = useSelector((state: RootState) => selectFavoritesLoading(state));
+  const favoritesError = useSelector((state: RootState) => selectFavoritesError(state));
+  const isEmpty = !isFavoritesLoading && !favoritesError && favoriteOffers.length === 0;
+
+  const favoriteOffersByCity = useMemo(() => favoriteOffers.reduce((cityGroups, offer) => {
     const cityOffers = cityGroups.get(offer.city) ?? [];
     cityOffers.push(offer);
     cityGroups.set(offer.city, cityOffers);
     return cityGroups;
-  }, new Map<string, Offer[]>());
+  }, new Map<string, Offer[]>()), [favoriteOffers]);
 
   return (
-    <div className="page">
-      <main className="page__main page__main--favorites">
+    <div className={`page${isEmpty ? ' page--favorites-empty' : ''}`}>
+      <main className={`page__main page__main--favorites${isEmpty ? ' page__main--favorites-empty' : ''}`}>
         <div className="page__favorites-container container">
-          <section className="favorites">
-            <h1 className="favorites__title">Saved listing</h1>
-            <ul className="favorites__list">
-              {Array.from(favoriteOffersByCity, ([city, cityOffers]) => (
-                <li className="favorites__locations-items" key={city}>
-                  <div className="favorites__locations locations locations--current">
-                    <div className="locations__item">
-                      <Link className="locations__item-link" to={`/?city=${encodeURIComponent(city)}`}><span>{city}</span></Link>
+          {isFavoritesLoading && <Spinner />}
+          {!isFavoritesLoading && favoritesError && <p role="alert">{favoritesError}</p>}
+          {isEmpty && (
+            <section className="favorites favorites--empty">
+              <h1 className="visually-hidden">Favorites (empty)</h1>
+              <div className="favorites__status-wrapper">
+                <b className="favorites__status">Nothing yet saved.</b>
+                <p className="favorites__status-description">Save properties to narrow down search or plan your future trips.</p>
+              </div>
+            </section>
+          )}
+          {!isFavoritesLoading && !favoritesError && favoriteOffers.length > 0 && (
+            <section className="favorites">
+              <h1 className="favorites__title">Saved listing</h1>
+              <ul className="favorites__list">
+                {Array.from(favoriteOffersByCity, ([city, cityOffers]) => (
+                  <li className="favorites__locations-items" key={city}>
+                    <div className="favorites__locations locations locations--current">
+                      <div className="locations__item">
+                        <Link className="locations__item-link" to={`/?city=${encodeURIComponent(city)}`}><span>{city}</span></Link>
+                      </div>
                     </div>
-                  </div>
-                  <div className="favorites__places">
-                    {cityOffers.map((offer) => <PlaceCard offer={offer} cardClassName="favorites__card" key={offer.id} />)}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
+                    <div className="favorites__places">
+                      {cityOffers.map((offer) => <PlaceCard offer={offer} cardClassName="favorites__card" key={offer.id} />)}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </main>
-      <footer className="footer container">
-        <Link className="footer__logo-link" to="/"><img className="footer__logo" src="img/logo.svg" alt="6 cities logo" width="64" height="33" /></Link>
-      </footer>
+      {!isFavoritesLoading && !favoritesError && favoriteOffers.length === 0 && (
+        <footer className="footer">
+          <Link className="footer__logo-link" to="/"><img className="footer__logo" src="/img/logo.svg" alt="6 cities logo" width="64" height="33" /></Link>
+        </footer>
+      )}
+      {!isFavoritesLoading && !favoritesError && favoriteOffers.length > 0 && (
+        <footer className="footer container">
+          <Link className="footer__logo-link" to="/"><img className="footer__logo" src="/img/logo.svg" alt="6 cities logo" width="64" height="33" /></Link>
+        </footer>
+      )}
     </div>
   );
 }

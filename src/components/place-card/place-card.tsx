@@ -1,18 +1,21 @@
+import {memo, useCallback} from 'react';
 import {Link} from 'react-router-dom';
 import type {Offer} from '../../types/offer';
+import FavoriteButton from '../favorite-button/favorite-button';
 
 type PlaceCardProps = {
   offer: Offer;
   cardClassName?: string;
   imageWrapperClassName?: string;
-  onMouseEnter?: () => void;
+  onOfferHover?: (offerId: string) => void;
 };
 
-function PlaceCard({offer, cardClassName = 'cities__card', imageWrapperClassName = 'cities__image-wrapper', onMouseEnter}: PlaceCardProps) {
+const PlaceCard = memo(({offer, cardClassName = 'cities__card', imageWrapperClassName = 'cities__image-wrapper', onOfferHover}: PlaceCardProps) => {
   const {id, image, price, title, type, rating, isPremium = false, isFavorite = false} = offer;
+  const handleMouseEnter = useCallback(() => onOfferHover?.(id), [id, onOfferHover]);
 
   return (
-    <article className={`${cardClassName} place-card`} onMouseEnter={onMouseEnter}>
+    <article className={`${cardClassName} place-card`} onMouseEnter={onOfferHover ? handleMouseEnter : undefined}>
       {isPremium && <div className="place-card__mark"><span>Premium</span></div>}
       <div className={`${imageWrapperClassName} place-card__image-wrapper`}>
         <Link to={`/offer/${id}`}>
@@ -22,17 +25,22 @@ function PlaceCard({offer, cardClassName = 'cities__card', imageWrapperClassName
       <div className="place-card__info">
         <div className="place-card__price-wrapper">
           <div className="place-card__price"><b className="place-card__price-value">&euro;{price}</b><span className="place-card__price-text">/ night</span></div>
-          <button className={`place-card__bookmark-button${isFavorite ? ' place-card__bookmark-button--active' : ''} button`} type="button">
-            <svg className="place-card__bookmark-icon" width="18" height="19"><use xlinkHref="#icon-bookmark" /></svg>
-            <span className="visually-hidden">{isFavorite ? 'In bookmarks' : 'To bookmarks'}</span>
-          </button>
+          <FavoriteButton
+            offerId={id}
+            isFavorite={isFavorite}
+            className="place-card__bookmark-button"
+            iconClassName="place-card__bookmark-icon"
+            iconWidth={18}
+            iconHeight={19}
+          />
         </div>
-        <div className="place-card__rating rating"><div className="place-card__stars rating__stars"><span style={{width: `${rating * 20}%`}} /><span className="visually-hidden">Rating</span></div></div>
+        <div className="place-card__rating rating"><div className="place-card__stars rating__stars"><span style={{width: `${Math.round(rating) * 20}%`}} /><span className="visually-hidden">Rating</span></div></div>
         <h2 className="place-card__name"><Link to={`/offer/${id}`}>{title}</Link></h2>
         <p className="place-card__type">{type}</p>
       </div>
     </article>
   );
-}
+});
 
+PlaceCard.displayName = 'PlaceCard';
 export default PlaceCard;
