@@ -7,6 +7,7 @@ import ReviewList from '../../components/review-list/review-list';
 import ReviewForm from '../../components/review-form/review-form';
 import FavoriteButton from '../../components/favorite-button/favorite-button';
 import Spinner from '../../components/spinner/spinner';
+import {DEFAULT_MAP_CENTER, RATING_PERCENTAGE_FACTOR} from '../../constants';
 import {AuthorizationStatus} from '../../store/authorization-status';
 import type {AppDispatch, RootState} from '../../store';
 import {fetchOfferData} from '../../store/action';
@@ -48,7 +49,7 @@ function OfferPage() {
   const mapCenter = useMemo<[number, number]>(
     () => offerLatitude !== undefined && offerLongitude !== undefined
       ? [offerLatitude, offerLongitude]
-      : [48.85661, 2.351499],
+      : DEFAULT_MAP_CENTER,
     [offerLatitude, offerLongitude]
   );
 
@@ -102,7 +103,7 @@ function OfferPage() {
               />
             </div>
             <div className="offer__rating rating">
-              <div className="offer__stars rating__stars"><span style={{width: `${Math.round(offer.rating) * 20}%`}} /></div>
+              <div className="offer__stars rating__stars"><span style={{width: `${Math.round(offer.rating) * RATING_PERCENTAGE_FACTOR}%`}} /></div>
               <span className="offer__rating-value rating__value">{offer.rating}</span>
             </div>
             <ul className="offer__features">

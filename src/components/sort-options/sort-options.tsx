@@ -12,26 +12,26 @@ type SortOptionsProps = {
 const SortOptions = memo(({sortType, onSortChange}: SortOptionsProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleToggleClick = () => {
+  const handleSortToggleClick = () => {
     setIsOpen((isMenuOpen) => !isMenuOpen);
   };
 
-  const handleOptionClick = (option: SortType) => {
+  const handleSortOptionClick = (option: SortType) => {
     onSortChange(option);
     setIsOpen(false);
   };
 
-  const handleOptionKeyDown = (event: KeyboardEvent<HTMLLIElement>, option: SortType) => {
+  const handleSortOptionKeyDown = (event: KeyboardEvent<HTMLLIElement>, option: SortType) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      handleOptionClick(option);
+      handleSortOptionClick(option);
     }
   };
 
-  const handleToggleKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
+  const handleSortToggleKeyDown = (event: KeyboardEvent<HTMLSpanElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      handleToggleClick();
+      handleSortToggleClick();
     }
 
     if (event.key === 'Escape') {
@@ -47,26 +47,33 @@ const SortOptions = memo(({sortType, onSortChange}: SortOptionsProps) => {
         role="button"
         tabIndex={0}
         aria-expanded={isOpen}
-        onClick={handleToggleClick}
-        onKeyDown={handleToggleKeyDown}
+        onClick={handleSortToggleClick}
+        onKeyDown={handleSortToggleKeyDown}
       >
         {sortType}
         <svg className="places__sorting-arrow" width="7" height="4"><use xlinkHref="#icon-arrow-select" /></svg>
       </span>
       <ul className={`places__options places__options--custom${isOpen ? ' places__options--opened' : ''}`} role="listbox">
-        {SORT_TYPES.map((option) => (
-          <li
-            className={`places__option${option === sortType ? ' places__option--active' : ''}`}
-            key={option}
-            role="option"
-            aria-selected={option === sortType}
-            tabIndex={0}
-            onClick={() => handleOptionClick(option)}
-            onKeyDown={(event) => handleOptionKeyDown(event, option)}
-          >
-            {option}
-          </li>
-        ))}
+        {SORT_TYPES.map((option) => {
+          const handleSortOptionClickEvent = () => handleSortOptionClick(option);
+          const handleSortOptionKeyDownEvent = (event: KeyboardEvent<HTMLLIElement>) => {
+            handleSortOptionKeyDown(event, option);
+          };
+
+          return (
+            <li
+              className={`places__option${option === sortType ? ' places__option--active' : ''}`}
+              key={option}
+              role="option"
+              aria-selected={option === sortType}
+              tabIndex={0}
+              onClick={handleSortOptionClickEvent}
+              onKeyDown={handleSortOptionKeyDownEvent}
+            >
+              {option}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

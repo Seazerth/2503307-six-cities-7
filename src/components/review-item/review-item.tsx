@@ -1,5 +1,6 @@
 import {memo} from 'react';
 import type {Review} from '../../types/review';
+import {RATING_PERCENTAGE_FACTOR} from '../../constants';
 
 type ReviewItemProps = {
   review: Review;
@@ -24,7 +25,7 @@ const ReviewItem = memo(({review}: ReviewItemProps) => {
       <div className="reviews__info">
         <div className="reviews__rating rating">
           <div className="reviews__stars rating__stars">
-            <span style={{width: `${review.rating * 20}%`}} />
+            <span style={{width: `${review.rating * RATING_PERCENTAGE_FACTOR}%`}} />
             <span className="visually-hidden">Rating</span>
           </div>
         </div>

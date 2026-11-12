@@ -9,17 +9,21 @@ type CityListProps = {
 
 const CityList = memo(({cities, activeCity, onCityChange}: CityListProps) => (
   <ul className="locations__list tabs__list">
-    {cities.map((city) => (
-      <li className="locations__item" key={city}>
-        <Link
-          className={`locations__item-link tabs__item${city === activeCity ? ' tabs__item--active' : ''}`}
-          to={`/?city=${encodeURIComponent(city)}`}
-          onClick={() => onCityChange(city)}
-        >
-          <span>{city}</span>
-        </Link>
-      </li>
-    ))}
+    {cities.map((city) => {
+      const handleCityLinkClick = () => onCityChange(city);
+
+      return (
+        <li className="locations__item" key={city}>
+          <Link
+            className={`locations__item-link tabs__item${city === activeCity ? ' tabs__item--active' : ''}`}
+            to={`/?city=${encodeURIComponent(city)}`}
+            onClick={handleCityLinkClick}
+          >
+            <span>{city}</span>
+          </Link>
+        </li>
+      );
+    })}
   </ul>
 ));
 

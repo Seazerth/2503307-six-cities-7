@@ -1,6 +1,7 @@
 import {memo, useCallback} from 'react';
 import {Link} from 'react-router-dom';
 import type {Offer} from '../../types/offer';
+import {RATING_PERCENTAGE_FACTOR} from '../../constants';
 import FavoriteButton from '../favorite-button/favorite-button';
 
 type PlaceCardProps = {
@@ -39,7 +40,7 @@ const PlaceCard = memo(({offer, cardClassName = 'cities__card', imageWrapperClas
             iconHeight={19}
           />
         </div>
-        <div className="place-card__rating rating"><div className="place-card__stars rating__stars"><span style={{width: `${Math.round(rating) * 20}%`}} /><span className="visually-hidden">Rating</span></div></div>
+        <div className="place-card__rating rating"><div className="place-card__stars rating__stars"><span style={{width: `${Math.round(rating) * RATING_PERCENTAGE_FACTOR}%`}} /><span className="visually-hidden">Rating</span></div></div>
         <h2 className="place-card__name"><Link to={`/offer/${id}`}>{title}</Link></h2>
         <p className="place-card__type">{type}</p>
       </div>

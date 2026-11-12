@@ -23,15 +23,15 @@ function ReviewForm({offerId}: ReviewFormProps) {
     && review.length >= MIN_REVIEW_LENGTH
     && review.length <= MAX_REVIEW_LENGTH;
 
-  const handleRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleRatingInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setRating(event.target.value);
   };
 
-  const handleReviewChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleReviewInputChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setReview(event.target.value);
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const submitReview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!isValid || isSending) {
       return;
@@ -49,13 +49,12 @@ function ReviewForm({offerId}: ReviewFormProps) {
     }
   };
 
+  const handleReviewFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    void submitReview(event);
+  };
+
   return (
-    <form
-      className="reviews__form form"
-      onSubmit={(event) => {
-        void handleSubmit(event);
-      }}
-    >
+    <form className="reviews__form form" onSubmit={handleReviewFormSubmit}>
       <label className="reviews__label form__label" htmlFor="review">Your review</label>
       <div className="reviews__rating-form form__rating">
         {RATINGS.map((value) => (
@@ -67,7 +66,7 @@ function ReviewForm({offerId}: ReviewFormProps) {
               id={`${value}-stars`}
               type="radio"
               checked={rating === String(value)}
-              onChange={handleRatingChange}
+              onChange={handleRatingInputChange}
               disabled={isSending}
             />
             <label htmlFor={`${value}-stars`} className="reviews__rating-label form__rating-label" title={`${value} stars`}>
@@ -82,7 +81,7 @@ function ReviewForm({offerId}: ReviewFormProps) {
         name="review"
         placeholder="Tell how was your stay, what you like and what can be improved"
         value={review}
-        onChange={handleReviewChange}
+        onChange={handleReviewInputChange}
         minLength={MIN_REVIEW_LENGTH}
         maxLength={MAX_REVIEW_LENGTH}
         disabled={isSending}

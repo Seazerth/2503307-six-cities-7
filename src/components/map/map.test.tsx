@@ -61,6 +61,7 @@ describe('CityMap', () => {
 
   it('creates a map with offer markers and highlights the active marker', async () => {
     const offers = [testOffer, {...testOffer, id: 'offer-2'}];
+    const updatedOffers = [...offers];
     const {container, rerender} = render(
       <CityMap offers={offers} activeOfferId={testOffer.id} center={[48.85, 2.35]} zoom={12} />
     );
@@ -70,11 +71,18 @@ describe('CityMap', () => {
     expect(leafletMocks.map).toHaveBeenCalledTimes(1);
     expect(leafletMocks.tileLayer).toHaveBeenCalledTimes(1);
     expect(leafletMocks.markerArguments[0]?.coordinates).toEqual([testOffer.location.latitude, testOffer.location.longitude]);
-    expect(leafletMocks.markerInstances[0].setIcon).toHaveBeenCalled();
+    expect(leafletMocks.markerInstances[0].setIcon).toHaveBeenLastCalledWith(expect.not.objectContaining({iconUrl: '/img/pin.svg'}));
+    expect(leafletMocks.markerInstances[1].setIcon).toHaveBeenLastCalledWith(leafletMocks.markerArguments[1]?.options.icon);
 
-    rerender(<CityMap offers={offers} activeOfferId="offer-2" center={[48.85, 2.35]} zoom={12} />);
+    rerender(<CityMap offers={updatedOffers} activeOfferId={testOffer.id} center={[48.85, 2.35]} zoom={12} />);
+    await waitFor(() => expect(leafletMocks.marker).toHaveBeenCalledTimes(4));
+    expect(leafletMocks.markerInstances[2].setIcon).toHaveBeenLastCalledWith(expect.not.objectContaining({iconUrl: '/img/pin.svg'}));
+    expect(leafletMocks.markerInstances[3].setIcon).toHaveBeenLastCalledWith(leafletMocks.markerArguments[3]?.options.icon);
+
+    rerender(<CityMap offers={updatedOffers} activeOfferId="offer-2" center={[48.85, 2.35]} zoom={12} />);
     await waitFor(() => expect(leafletMocks.markerInstances[1].setIcon).toHaveBeenCalled());
     expect(leafletMocks.layerGroup).toHaveBeenCalledTimes(1);
-    expect(leafletMocks.marker).toHaveBeenCalledTimes(2);
+    expect(leafletMocks.marker).toHaveBeenCalledTimes(4);
+    expect(leafletMocks.markerInstances[3].setIcon).toHaveBeenLastCalledWith(expect.not.objectContaining({iconUrl: '/img/pin.svg'}));
   });
 });

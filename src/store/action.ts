@@ -3,9 +3,11 @@ import axios from 'axios';
 import type {AxiosInstance} from 'axios';
 import type {AnyAction} from 'redux';
 import type {ThunkAction, ThunkDispatch} from 'redux-thunk';
+import {StatusCodes} from 'http-status-codes';
 import type {ApiOffer, Offer} from '../types/offer';
 import type {Review} from '../types/review';
 import {TOKEN_KEY} from '../services/api';
+import {FavoriteStatus} from '../constants';
 import {AuthorizationStatus} from './authorization-status';
 import type {AppState} from './reducer';
 
@@ -69,7 +71,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function handleUnauthorized(error: unknown, dispatch: AppDispatcher): void {
-  if (axios.isAxiosError(error) && error.response?.status === 401) {
+  if (axios.isAxiosError(error) && error.response?.status === StatusCodes.UNAUTHORIZED) {
     dispatch(setUserEmail(null));
     dispatch(setAuthorizationStatus(AuthorizationStatus.NoAuth));
     dispatch(setAuthorizationError('Your session has expired. Please sign in again.'));
@@ -125,7 +127,9 @@ export const toggleFavorite = (offerId: string): AppThunk => async (dispatch, ge
     return;
   }
 
-  const status = favorites.favoriteOffers.some((favorite) => favorite.id === offerId) ? 0 : 1;
+  const status = favorites.favoriteOffers.some((favorite) => favorite.id === offerId)
+    ? FavoriteStatus.Unfavorite
+    : FavoriteStatus.Favorite;
   dispatch(setFavoriteError(null));
 
   try {
@@ -171,7 +175,7 @@ export const fetchOfferData = (offerId: string): AppThunk => async (dispatch, _g
     dispatch(setOfferDataError({
       offerId,
       error: getErrorMessage(error),
-      isNotFound: axios.isAxiosError(error) && error.response?.status === 404,
+      isNotFound: axios.isAxiosError(error) && error.response?.status === StatusCodes.NOT_FOUND,
     }));
     handleUnauthorized(error, dispatch);
   }
@@ -206,7 +210,7 @@ export const checkAuth = (): AppThunk => async (dispatch, _getState, api) => {
     void dispatch(fetchFavoriteOffers());
   } catch (error) {
     dispatch(setAuthorizationStatus(AuthorizationStatus.NoAuth));
-    if (!(axios.isAxiosError(error) && error.response?.status === 401)) {
+    if (!(axios.isAxiosError(error) && error.response?.status === StatusCodes.UNAUTHORIZED)) {
       dispatch(setAuthorizationError(getErrorMessage(error)));
     } else {
       dispatch(setUserEmail(null));
@@ -244,7 +248,7 @@ export const logout = (): AppThunk => async (dispatch, _getState, api) => {
     dispatch(setAuthorizationStatus(AuthorizationStatus.NoAuth));
     dispatch(clearFavorites());
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
+    if (axios.isAxiosError(error) && error.response?.status === StatusCodes.UNAUTHORIZED) {
       dispatch(setUserEmail(null));
       dispatch(setAuthorizationStatus(AuthorizationStatus.NoAuth));
       dispatch(clearFavorites());

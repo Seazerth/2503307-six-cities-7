@@ -19,7 +19,7 @@ function FavoriteButton({offerId, isFavorite, className, iconClassName, iconWidt
   const navigate = useNavigate();
   const authorizationStatus = useSelector((state: RootState) => selectAuthorizationStatus(state));
 
-  const handleClick = () => {
+  const handleFavoriteButtonClick = () => {
     if (authorizationStatus !== AuthorizationStatus.Auth) {
       navigate('/login');
       return;
@@ -33,7 +33,7 @@ function FavoriteButton({offerId, isFavorite, className, iconClassName, iconWidt
       className={`${className}${isFavorite ? ` ${className}--active` : ''} button`}
       type="button"
       aria-pressed={isFavorite}
-      onClick={handleClick}
+      onClick={handleFavoriteButtonClick}
     >
       <svg className={iconClassName} width={iconWidth} height={iconHeight}>
         <use xlinkHref="#icon-bookmark" />

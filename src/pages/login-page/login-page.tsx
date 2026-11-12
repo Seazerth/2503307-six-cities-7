@@ -14,7 +14,7 @@ function LoginPage() {
   const authorizationError = useSelector((state: RootState) => selectAuthorizationError(state));
   const [randomCity] = useState(() => CITIES[Math.floor(Math.random() * CITIES.length)] ?? CITIES[0]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleLoginFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     dispatch(login({
@@ -32,7 +32,7 @@ function LoginPage() {
       <div className="page__login-container container">
         <section className="login">
           <h1 className="login__title">Sign in</h1>
-          <form className="login__form form" onSubmit={handleSubmit}>
+          <form className="login__form form" onSubmit={handleLoginFormSubmit}>
             <div className="login__input-wrapper form__input-wrapper">
               <label className="visually-hidden" htmlFor="email">E-mail</label>
               <input className="login__input form__input" id="email" type="email" name="email" placeholder="Email" required />

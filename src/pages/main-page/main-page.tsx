@@ -12,6 +12,7 @@ import type {Offer} from '../../types/offer';
 import {changeCity} from '../../store/action';
 import type {AppDispatch, RootState} from '../../store';
 import Spinner from '../../components/spinner/spinner';
+import {DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM} from '../../constants';
 import {selectCity, selectIsOffersDataLoading, selectOffersForCity, selectOffersLoadingError, selectRawOffersForCity} from '../../store/selectors';
 
 function getSortedOffers(offers: Offer[], sortType: SortType): Offer[] {
@@ -44,7 +45,7 @@ function MainPage() {
   const mapCenter = useMemo<[number, number]>(
     () => cityLatitude !== undefined && cityLongitude !== undefined
       ? [cityLatitude, cityLongitude]
-      : [48.85661, 2.351499],
+      : DEFAULT_MAP_CENTER,
     [cityLatitude, cityLongitude]
   );
 
@@ -95,7 +96,7 @@ function MainPage() {
                 offers={rawCityOffers}
                 activeOfferId={activeOfferId}
                 center={mapCenter}
-                zoom={cityLocation?.zoom ?? 13}
+                zoom={cityLocation?.zoom ?? DEFAULT_MAP_ZOOM}
               />
             </div>
           )}
