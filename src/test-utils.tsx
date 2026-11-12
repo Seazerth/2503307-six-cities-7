@@ -4,6 +4,7 @@ import {render} from '@testing-library/react';
 import type {RenderOptions} from '@testing-library/react';
 import {MemoryRouter} from 'react-router-dom';
 import {Provider} from 'react-redux';
+import api from './services/api';
 import type {Offer} from './types/offer';
 import type {Review} from './types/review';
 import reducer from './store/reducer';
@@ -31,7 +32,12 @@ export const testReview: Review = {
   rating: 5,
 };
 
-export const createTestStore = () => configureStore({reducer});
+export const createTestStore = () => configureStore({
+  reducer,
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+    thunk: {extraArgument: api},
+  }),
+});
 
 type TestRenderOptions = Omit<RenderOptions, 'wrapper'> & {
   route?: string;
