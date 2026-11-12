@@ -2,10 +2,13 @@ import {configureStore} from '@reduxjs/toolkit';
 import MockAdapter from 'axios-mock-adapter';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {ApiOffer, Offer} from '../types/offer';
+import type {Review} from '../types/review';
 import api from '../services/api';
 import reducer from './reducer';
 import {
   fetchFavoriteOffers,
+  fetchOfferData,
+  fetchOffers,
   loadOffers,
   loadOfferData,
   setFavoriteError,
@@ -13,6 +16,7 @@ import {
   setOfferDataLoading,
   toggleFavorite,
   updateFavoriteOffer,
+  postReview,
 } from './action';
 import {AuthorizationStatus} from './authorization-status';
 import {selectActiveOffer, selectFavoriteCount, selectOffersForCity, selectRawOffersForCity} from './selectors';
@@ -58,6 +62,14 @@ const unfavoriteResponse: ApiOffer = {
   isFavorite: false,
 };
 
+const review: Review = {
+  id: 'review-1',
+  date: '2024-01-01T00:00:00.000Z',
+  user: {name: 'Alex', avatarUrl: '/img/avatar.jpg', isPro: false},
+  comment: 'A pleasant stay.',
+  rating: 5,
+};
+
 const createStore = () => configureStore({
   reducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
@@ -65,17 +77,15 @@ const createStore = () => configureStore({
   }),
 });
 
-describe('favorite offer actions', () => {
-  const mockApi = new MockAdapter(api);
+const mockApi = new MockAdapter(api);
 
+describe('favorite offer actions', () => {
   beforeEach(() => {
     mockApi.reset();
-    localStorage.clear();
   });
 
   afterEach(() => {
     mockApi.reset();
-    localStorage.clear();
   });
 
   it('preserves detailed offer data when the favorite endpoint returns a summary', async () => {
@@ -98,6 +108,92 @@ describe('favorite offer actions', () => {
       goods: detailedOffer.goods,
       host: detailedOffer.host,
       isFavorite: true,
+    });
+  });
+
+  describe('server data actions', () => {
+    beforeEach(() => {
+      mockApi.reset();
+    });
+
+    afterEach(() => {
+      mockApi.reset();
+    });
+
+    it('loads offers and adapts server city and image fields', async () => {
+      const store = createStore();
+      mockApi.onGet('/offers').reply(200, [favoriteResponse]);
+
+      await store.dispatch(fetchOffers());
+
+      expect(store.getState().main.isOffersDataLoading).toBe(false);
+      expect(store.getState().main.offers).toHaveLength(1);
+      expect(store.getState().main.offers[0]).toMatchObject({
+        city: 'Paris',
+        cityLocation,
+        image: '/img/room.jpg',
+        images: ['/img/room.jpg'],
+      });
+    });
+
+    it('stores the offers loading error and ends loading after a failed request', async () => {
+      const store = createStore();
+      mockApi.onGet('/offers').reply(500, {message: 'Server unavailable'});
+
+      await store.dispatch(fetchOffers());
+
+      expect(store.getState().main.isOffersDataLoading).toBe(false);
+      expect(store.getState().main.offersLoadingError).toBe('Request failed with status code 500');
+    });
+
+    it('loads offer details, nearby offers and reviews together', async () => {
+      const store = createStore();
+      mockApi
+        .onGet(`/offers/${detailedOffer.id}`).reply(200, favoriteResponse)
+        .onGet(`/offers/${detailedOffer.id}/nearby`).reply(200, [favoriteResponse])
+        .onGet(`/comments/${detailedOffer.id}`).reply(200, [review]);
+
+      await store.dispatch(fetchOfferData(detailedOffer.id));
+
+      expect(store.getState().offer.isOfferDataLoading).toBe(false);
+      expect(store.getState().offer.offerDataId).toBe(detailedOffer.id);
+      expect(store.getState().offer.activeOffer?.city).toBe('Paris');
+      expect(store.getState().offer.nearbyOffers).toHaveLength(1);
+      expect(store.getState().offer.reviews).toEqual([review]);
+    });
+
+    it('submits a review and clears the sending state on success', async () => {
+      const store = createStore();
+      store.dispatch(setOfferDataLoading(detailedOffer.id));
+      mockApi.onPost(`/comments/${detailedOffer.id}`, {comment: review.comment, rating: review.rating}).reply(200, review);
+
+      const result = await store.dispatch(postReview({
+        offerId: detailedOffer.id,
+        comment: review.comment,
+        rating: review.rating,
+      }));
+
+      expect(result).toBe(true);
+      expect(store.getState().offer.reviews).toEqual([review]);
+      expect(store.getState().offer.isReviewSending).toBe(false);
+      expect(store.getState().offer.reviewSendingError).toBeNull();
+    });
+
+    it('records a review error and clears the sending state on failure', async () => {
+      const store = createStore();
+      store.dispatch(setOfferDataLoading(detailedOffer.id));
+      mockApi.onPost(`/comments/${detailedOffer.id}`).reply(400, {message: 'Invalid review'});
+
+      const result = await store.dispatch(postReview({
+        offerId: detailedOffer.id,
+        comment: review.comment,
+        rating: review.rating,
+      }));
+
+      expect(result).toBe(false);
+      expect(store.getState().offer.reviews).toEqual([]);
+      expect(store.getState().offer.isReviewSending).toBe(false);
+      expect(store.getState().offer.reviewSendingError).toBe('Invalid review');
     });
   });
 
