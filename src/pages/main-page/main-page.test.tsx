@@ -44,4 +44,24 @@ describe('MainPage', () => {
     expect(screen.getByRole('link', {name: 'Amsterdam'})).toHaveClass('tabs__item--active');
     expect(screen.getByText('1 place to stay in Amsterdam')).toBeInTheDocument();
   });
+
+  it('sorts the selected city offers by price', async () => {
+    const user = userEvent.setup();
+    const store = createTestStore();
+    store.dispatch(loadOffers([
+      {...testOffer, title: 'Mid-priced apartment', price: 120},
+      {...testOffer, id: 'offer-2', title: 'Expensive apartment', price: 200},
+      {...testOffer, id: 'offer-3', title: 'Affordable apartment', price: 80},
+    ]));
+    renderWithProviders(<MainPage />, {store});
+
+    await user.click(screen.getByRole('button', {name: 'Popular'}));
+    await user.click(screen.getByRole('option', {name: 'Price: low to high'}));
+
+    expect(screen.getAllByRole('article').map((card) => card.querySelector('h2')?.textContent)).toEqual([
+      'Affordable apartment',
+      'Mid-priced apartment',
+      'Expensive apartment',
+    ]);
+  });
 });
