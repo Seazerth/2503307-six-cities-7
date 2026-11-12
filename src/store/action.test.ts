@@ -15,7 +15,7 @@ import {
   updateFavoriteOffer,
 } from './action';
 import {AuthorizationStatus} from './authorization-status';
-import {selectActiveOffer, selectOffersForCity, selectRawOffersForCity} from './selectors';
+import {selectActiveOffer, selectFavoriteCount, selectOffersForCity, selectRawOffersForCity} from './selectors';
 
 const cityLocation = {latitude: 48.85661, longitude: 2.351499, zoom: 12};
 const location = {latitude: 48.85661, longitude: 2.351499, zoom: 10};
@@ -51,6 +51,11 @@ const favoriteResponse: ApiOffer = {
   rating: detailedOffer.rating,
   isPremium: detailedOffer.isPremium,
   isFavorite: true,
+};
+
+const unfavoriteResponse: ApiOffer = {
+  ...favoriteResponse,
+  isFavorite: false,
 };
 
 const createStore = () => configureStore({
@@ -138,5 +143,36 @@ describe('favorite offer actions', () => {
     expect(updatedSelection[0].isFavorite).toBe(true);
     expect(updatedSelection[1]).toBe(firstSelection[1]);
     expect(selectRawOffersForCity(store.getState())).toBe(rawSelection);
+  });
+
+  it('adds and removes an offer from favorites and updates the favorite count', async () => {
+    const store = createStore();
+    store.dispatch(setAuthorizationStatus(AuthorizationStatus.Auth));
+    store.dispatch(loadOffers([detailedOffer]));
+    mockApi
+      .onPost(`/favorite/${detailedOffer.id}/1`).reply(200, favoriteResponse)
+      .onPost(`/favorite/${detailedOffer.id}/0`).reply(200, unfavoriteResponse);
+
+    await store.dispatch(toggleFavorite(detailedOffer.id));
+    expect(store.getState().favorites.favoriteOffers).toHaveLength(1);
+    expect(selectFavoriteCount(store.getState())).toBe(1);
+    expect(selectOffersForCity(store.getState())[0].isFavorite).toBe(true);
+
+    await store.dispatch(toggleFavorite(detailedOffer.id));
+    expect(store.getState().favorites.favoriteOffers).toHaveLength(0);
+    expect(selectFavoriteCount(store.getState())).toBe(0);
+    expect(selectOffersForCity(store.getState())[0].isFavorite).toBe(false);
+  });
+
+  it('loads the authorized user favorites from the server', async () => {
+    const store = createStore();
+    store.dispatch(setAuthorizationStatus(AuthorizationStatus.Auth));
+    mockApi.onGet('/favorite').reply(200, [favoriteResponse]);
+
+    await store.dispatch(fetchFavoriteOffers());
+
+    expect(store.getState().favorites.favoriteOffers).toHaveLength(1);
+    expect(store.getState().favorites.favoriteOffers[0].id).toBe(detailedOffer.id);
+    expect(selectFavoriteCount(store.getState())).toBe(1);
   });
 });
