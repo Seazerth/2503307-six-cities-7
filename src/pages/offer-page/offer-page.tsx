@@ -25,6 +25,7 @@ import {
 
 const MAX_NEARBY_OFFERS = 3;
 const MAX_REVIEWS = 10;
+const MAX_GALLERY_IMAGES = 6;
 
 function OfferPage() {
   const {id} = useParams<{id: string}>();
@@ -80,7 +81,7 @@ function OfferPage() {
         <section className="offer">
           <div className="offer__gallery-container container">
             <div className="offer__gallery">
-              {offer.images.map((image) => (
+              {offer.images.slice(0, MAX_GALLERY_IMAGES).map((image) => (
                 <div className="offer__image-wrapper" key={image}>
                   <img className="offer__image" src={image} alt={offer.title} />
                 </div>
@@ -106,11 +107,19 @@ function OfferPage() {
                 <span className="offer__rating-value rating__value">{offer.rating}</span>
               </div>
               <ul className="offer__features">
-                <li className="offer__feature offer__feature--entire">{offer.type}</li>
-                <li className="offer__feature offer__feature--bedrooms">{offer.bedrooms} Bedrooms</li>
-                <li className="offer__feature offer__feature--adults">
-                  Max {offer.maxAdults} {offer.maxAdults === 1 ? 'adult' : 'adults'}
+                <li className="offer__feature offer__feature--entire">
+                  {offer.type.charAt(0).toUpperCase() + offer.type.slice(1)}
                 </li>
+                {offer.bedrooms !== undefined && (
+                  <li className="offer__feature offer__feature--bedrooms">
+                    {offer.bedrooms} {offer.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}
+                  </li>
+                )}
+                {offer.maxAdults !== undefined && (
+                  <li className="offer__feature offer__feature--adults">
+                    Max {offer.maxAdults} {offer.maxAdults === 1 ? 'adult' : 'adults'}
+                  </li>
+                )}
               </ul>
               <div className="offer__price">
                 <b className="offer__price-value">&euro;{offer.price}</b>

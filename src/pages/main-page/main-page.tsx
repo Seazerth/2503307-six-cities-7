@@ -60,7 +60,7 @@ function MainPage() {
     setSearchParams({city});
   }, [dispatch, setSearchParams]);
 
-  const handleOfferHover = useCallback((offerId: string) => {
+  const handleOfferHover = useCallback((offerId: string | null) => {
     setActiveOfferId(offerId);
   }, []);
 

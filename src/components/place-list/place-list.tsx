@@ -4,7 +4,7 @@ import type {Offer} from '../../types/offer';
 
 type PlaceListProps = {
   offers: Offer[];
-  onOfferHover: (offerId: string) => void;
+  onOfferHover: (offerId: string | null) => void;
 };
 
 const PlaceList = memo(({offers, onOfferHover}: PlaceListProps) => (

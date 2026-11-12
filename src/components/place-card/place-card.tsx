@@ -7,15 +7,20 @@ type PlaceCardProps = {
   offer: Offer;
   cardClassName?: string;
   imageWrapperClassName?: string;
-  onOfferHover?: (offerId: string) => void;
+  onOfferHover?: (offerId: string | null) => void;
 };
 
 const PlaceCard = memo(({offer, cardClassName = 'cities__card', imageWrapperClassName = 'cities__image-wrapper', onOfferHover}: PlaceCardProps) => {
   const {id, image, price, title, type, rating, isPremium = false, isFavorite = false} = offer;
   const handleMouseEnter = useCallback(() => onOfferHover?.(id), [id, onOfferHover]);
+  const handleMouseLeave = useCallback(() => onOfferHover?.(null), [onOfferHover]);
 
   return (
-    <article className={`${cardClassName} place-card`} onMouseEnter={onOfferHover ? handleMouseEnter : undefined}>
+    <article
+      className={`${cardClassName} place-card`}
+      onMouseEnter={onOfferHover ? handleMouseEnter : undefined}
+      onMouseLeave={onOfferHover ? handleMouseLeave : undefined}
+    >
       {isPremium && <div className="place-card__mark"><span>Premium</span></div>}
       <div className={`${imageWrapperClassName} place-card__image-wrapper`}>
         <Link to={`/offer/${id}`}>
