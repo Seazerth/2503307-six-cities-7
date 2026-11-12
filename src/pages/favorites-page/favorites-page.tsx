@@ -21,7 +21,7 @@ function FavoritesPage() {
   }, new Map<string, Offer[]>()), [favoriteOffers]);
 
   return (
-    <div className={`page${isEmpty ? ' page--favorites-empty' : ''}`}>
+    <>
       <main className={`page__main page__main--favorites${isEmpty ? ' page__main--favorites-empty' : ''}`}>
         <div className="page__favorites-container container">
           {isFavoritesLoading && <Spinner />}
@@ -66,7 +66,7 @@ function FavoritesPage() {
           <Link className="footer__logo-link" to="/"><img className="footer__logo" src="/img/logo.svg" alt="6 cities logo" width="64" height="33" /></Link>
         </footer>
       )}
-    </div>
+    </>
   );
 }
 

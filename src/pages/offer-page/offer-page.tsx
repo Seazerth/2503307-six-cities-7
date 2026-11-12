@@ -76,101 +76,99 @@ function OfferPage() {
   }
 
   return (
-    <div className="page">
-      <main className="page__main page__main--offer">
-        <section className="offer">
-          <div className="offer__gallery-container container">
-            <div className="offer__gallery">
-              {offer.images.slice(0, MAX_GALLERY_IMAGES).map((image) => (
-                <div className="offer__image-wrapper" key={image}>
-                  <img className="offer__image" src={image} alt={offer.title} />
-                </div>
-              ))}
-            </div>
+    <main className="page__main page__main--offer">
+      <section className="offer">
+        <div className="offer__gallery-container container">
+          <div className="offer__gallery">
+            {offer.images.slice(0, MAX_GALLERY_IMAGES).map((image) => (
+              <div className="offer__image-wrapper" key={image}>
+                <img className="offer__image" src={image} alt={offer.title} />
+              </div>
+            ))}
           </div>
-          <div className="offer__container container">
-            <div className="offer__wrapper">
-              {offer.isPremium && <div className="offer__mark"><span>Premium</span></div>}
-              <div className="offer__name-wrapper">
-                <h1 className="offer__name">{offer.title}</h1>
-                <FavoriteButton
-                  offerId={offer.id}
-                  isFavorite={offer.isFavorite}
-                  className="offer__bookmark-button"
-                  iconClassName="offer__bookmark-icon"
-                  iconWidth={31}
-                  iconHeight={33}
-                />
-              </div>
-              <div className="offer__rating rating">
-                <div className="offer__stars rating__stars"><span style={{width: `${Math.round(offer.rating) * 20}%`}} /></div>
-                <span className="offer__rating-value rating__value">{offer.rating}</span>
-              </div>
-              <ul className="offer__features">
-                <li className="offer__feature offer__feature--entire">
-                  {offer.type.charAt(0).toUpperCase() + offer.type.slice(1)}
-                </li>
-                {offer.bedrooms !== undefined && (
-                  <li className="offer__feature offer__feature--bedrooms">
-                    {offer.bedrooms} {offer.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}
-                  </li>
-                )}
-                {offer.maxAdults !== undefined && (
-                  <li className="offer__feature offer__feature--adults">
-                    Max {offer.maxAdults} {offer.maxAdults === 1 ? 'adult' : 'adults'}
-                  </li>
-                )}
-              </ul>
-              <div className="offer__price">
-                <b className="offer__price-value">&euro;{offer.price}</b>
-                <span className="offer__price-text"> night</span>
-              </div>
-              <div className="offer__inside">
-                <h2 className="offer__inside-title">What&apos;s inside</h2>
-                <ul className="offer__inside-list">
-                  {offer.goods?.map((good) => <li className="offer__inside-item" key={good}>{good}</li>)}
-                </ul>
-              </div>
-              {offer.host && (
-                <div className="offer__host">
-                  <h2 className="offer__host-title">Meet the host</h2>
-                  <div className="offer__host-user user">
-                    <div className={`offer__avatar-wrapper user__avatar-wrapper${offer.host.isPro ? ' offer__avatar-wrapper--pro' : ''}`}>
-                      <img className="offer__avatar user__avatar" src={offer.host.avatarUrl} width="74" height="74" alt={`${offer.host.name}'s avatar`} />
-                    </div>
-                    <span className="offer__user-name">{offer.host.name}</span>
-                    {offer.host.isPro && <span className="offer__user-status">Pro</span>}
-                  </div>
-                </div>
-              )}
-              {offer.description && (
-                <div className="offer__description">
-                  <p className="offer__text">{offer.description}</p>
-                </div>
-              )}
-              <section className="offer__reviews reviews">
-                <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{sortedReviews.length}</span></h2>
-                <ReviewList reviews={displayedReviews} />
-                {authorizationStatus === AuthorizationStatus.Auth && <ReviewForm offerId={offer.id} />}
-              </section>
-            </div>
-          </div>
-          <CityMap
-            offers={mapOffers}
-            activeOfferId={offer.id}
-            center={mapCenter}
-            zoom={offer.cityLocation.zoom}
-            mapClassName="offer__map map"
-          />
-        </section>
-        <div className="container">
-          <section className="near-places places">
-            <h2 className="near-places__title">Other places in the neighbourhood</h2>
-            <NearbyOfferList offers={displayedNearbyOffers} />
-          </section>
         </div>
-      </main>
-    </div>
+        <div className="offer__container container">
+          <div className="offer__wrapper">
+            {offer.isPremium && <div className="offer__mark"><span>Premium</span></div>}
+            <div className="offer__name-wrapper">
+              <h1 className="offer__name">{offer.title}</h1>
+              <FavoriteButton
+                offerId={offer.id}
+                isFavorite={offer.isFavorite}
+                className="offer__bookmark-button"
+                iconClassName="offer__bookmark-icon"
+                iconWidth={31}
+                iconHeight={33}
+              />
+            </div>
+            <div className="offer__rating rating">
+              <div className="offer__stars rating__stars"><span style={{width: `${Math.round(offer.rating) * 20}%`}} /></div>
+              <span className="offer__rating-value rating__value">{offer.rating}</span>
+            </div>
+            <ul className="offer__features">
+              <li className="offer__feature offer__feature--entire">
+                {offer.type.charAt(0).toUpperCase() + offer.type.slice(1)}
+              </li>
+              {offer.bedrooms !== undefined && (
+                <li className="offer__feature offer__feature--bedrooms">
+                  {offer.bedrooms} {offer.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}
+                </li>
+              )}
+              {offer.maxAdults !== undefined && (
+                <li className="offer__feature offer__feature--adults">
+                    Max {offer.maxAdults} {offer.maxAdults === 1 ? 'adult' : 'adults'}
+                </li>
+              )}
+            </ul>
+            <div className="offer__price">
+              <b className="offer__price-value">&euro;{offer.price}</b>
+              <span className="offer__price-text"> night</span>
+            </div>
+            <div className="offer__inside">
+              <h2 className="offer__inside-title">What&apos;s inside</h2>
+              <ul className="offer__inside-list">
+                {offer.goods?.map((good) => <li className="offer__inside-item" key={good}>{good}</li>)}
+              </ul>
+            </div>
+            {offer.host && (
+              <div className="offer__host">
+                <h2 className="offer__host-title">Meet the host</h2>
+                <div className="offer__host-user user">
+                  <div className={`offer__avatar-wrapper user__avatar-wrapper${offer.host.isPro ? ' offer__avatar-wrapper--pro' : ''}`}>
+                    <img className="offer__avatar user__avatar" src={offer.host.avatarUrl} width="74" height="74" alt={`${offer.host.name}'s avatar`} />
+                  </div>
+                  <span className="offer__user-name">{offer.host.name}</span>
+                  {offer.host.isPro && <span className="offer__user-status">Pro</span>}
+                </div>
+              </div>
+            )}
+            {offer.description && (
+              <div className="offer__description">
+                <p className="offer__text">{offer.description}</p>
+              </div>
+            )}
+            <section className="offer__reviews reviews">
+              <h2 className="reviews__title">Reviews &middot; <span className="reviews__amount">{sortedReviews.length}</span></h2>
+              <ReviewList reviews={displayedReviews} />
+              {authorizationStatus === AuthorizationStatus.Auth && <ReviewForm offerId={offer.id} />}
+            </section>
+          </div>
+        </div>
+        <CityMap
+          offers={mapOffers}
+          activeOfferId={offer.id}
+          center={mapCenter}
+          zoom={offer.cityLocation.zoom}
+          mapClassName="offer__map map"
+        />
+      </section>
+      <div className="container">
+        <section className="near-places places">
+          <h2 className="near-places__title">Other places in the neighbourhood</h2>
+          <NearbyOfferList offers={displayedNearbyOffers} />
+        </section>
+      </div>
+    </main>
   );
 }
 

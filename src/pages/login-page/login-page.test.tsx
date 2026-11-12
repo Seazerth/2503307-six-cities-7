@@ -82,4 +82,18 @@ describe('LoginPage', () => {
     expect(store.getState().user.authorizationStatus).toBe(AuthorizationStatus.Auth);
     expect(localStorage.getItem(TOKEN_KEY)).toBe('test-token');
   });
+
+  it('redirects an authenticated user away from the login page', () => {
+    const store = createTestStore();
+    store.dispatch(setAuthorizationStatus(AuthorizationStatus.Auth));
+    renderWithProviders(
+      <Routes>
+        <Route path="/login" element={<><LoginPage /><CurrentPath /></>} />
+        <Route path="/" element={<CurrentPath />} />
+      </Routes>,
+      {route: '/login', store}
+    );
+
+    expect(screen.getByText('Current location: /')).toBeInTheDocument();
+  });
 });

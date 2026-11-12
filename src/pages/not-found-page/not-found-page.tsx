@@ -2,7 +2,7 @@ import {Link} from 'react-router-dom';
 
 function NotFoundPage() {
   return (
-    <main>
+    <main className="page__main">
       <h1>404 Not Found</h1>
       <Link to="/">Go to the main page</Link>
     </main>

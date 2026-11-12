@@ -47,4 +47,18 @@ describe('App routing', () => {
 
     expect(screen.getByRole('heading', {name: 'Login route'})).toBeInTheDocument();
   });
+
+  it.each([
+    ['/', AuthorizationStatus.NoAuth, 'page--main'],
+    ['/login', AuthorizationStatus.NoAuth, 'page--login'],
+    ['/favorites', AuthorizationStatus.Auth, 'page--favorites-empty'],
+    ['/offer/offer-1', AuthorizationStatus.NoAuth, 'page'],
+    ['/unknown', AuthorizationStatus.NoAuth, 'page'],
+  ] as const)('renders the shared header inside the page shell for %s', (path, status, pageClass) => {
+    const {container} = renderAtPath(path, status);
+    const page = container.querySelector('.page');
+
+    expect(page).toHaveClass(pageClass);
+    expect(page?.querySelector('.header')).toBeInTheDocument();
+  });
 });

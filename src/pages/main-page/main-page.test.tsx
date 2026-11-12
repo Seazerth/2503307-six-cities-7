@@ -24,12 +24,24 @@ describe('MainPage', () => {
     ]));
     renderWithProviders(<MainPage />, {store});
 
-    expect(screen.getByText('1 places to stay in Paris')).toBeInTheDocument();
+    expect(screen.getByText('1 place to stay in Paris')).toBeInTheDocument();
     await user.click(screen.getByRole('link', {name: 'Amsterdam'}));
 
-    expect(await screen.findByText('1 places to stay in Amsterdam')).toBeInTheDocument();
+    expect(await screen.findByText('1 place to stay in Amsterdam')).toBeInTheDocument();
     expect(screen.getByRole('heading', {name: 'Amsterdam apartment'})).toBeInTheDocument();
     expect(screen.queryByRole('heading', {name: testOffer.title})).not.toBeInTheDocument();
     expect(screen.getByTestId('map')).toBeInTheDocument();
+  });
+
+  it('initializes the selected city from the URL', () => {
+    const store = createTestStore();
+    store.dispatch(loadOffers([
+      testOffer,
+      {...testOffer, id: 'offer-2', city: 'Amsterdam', title: 'Amsterdam apartment'},
+    ]));
+    renderWithProviders(<MainPage />, {route: '/?city=Amsterdam', store});
+
+    expect(screen.getByRole('link', {name: 'Amsterdam'})).toHaveClass('tabs__item--active');
+    expect(screen.getByText('1 place to stay in Amsterdam')).toBeInTheDocument();
   });
 });

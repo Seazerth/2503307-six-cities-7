@@ -3,12 +3,16 @@ import MockAdapter from 'axios-mock-adapter';
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {ApiOffer, Offer} from '../types/offer';
 import type {Review} from '../types/review';
-import api from '../services/api';
+import api, {TOKEN_KEY} from '../services/api';
 import reducer from './reducer';
 import {
+  checkAuth,
   fetchFavoriteOffers,
   fetchOfferData,
   fetchOffers,
+  login,
+  logout,
+  loadFavoriteOffers,
   loadOffers,
   loadOfferData,
   setFavoriteError,
@@ -82,6 +86,69 @@ const mockApi = new MockAdapter(api);
 describe('favorite offer actions', () => {
   beforeEach(() => {
     mockApi.reset();
+  });
+
+  describe('authorization actions', () => {
+    beforeEach(() => {
+      mockApi.reset();
+      localStorage.clear();
+    });
+
+    afterEach(() => {
+      mockApi.reset();
+      localStorage.clear();
+    });
+
+    it('checks the current session and stores the returned credentials', async () => {
+      const store = createStore();
+      mockApi
+        .onGet('/login').reply(200, {email: 'guest@example.com', token: 'session-token'})
+        .onGet('/favorite').reply(200, []);
+
+      await store.dispatch(checkAuth());
+
+      expect(store.getState().user.authorizationStatus).toBe(AuthorizationStatus.Auth);
+      expect(store.getState().user.userEmail).toBe('guest@example.com');
+      expect(localStorage.getItem(TOKEN_KEY)).toBe('session-token');
+    });
+
+    it('reports an authorization check failure without breaking the guest state', async () => {
+      const store = createStore();
+      mockApi.onGet('/login').reply(500, {message: 'Server unavailable'});
+
+      await store.dispatch(checkAuth());
+
+      expect(store.getState().user.authorizationStatus).toBe(AuthorizationStatus.NoAuth);
+      expect(store.getState().user.authorizationError).toBe('Server unavailable');
+    });
+
+    it('logs in and loads favorites after successful authentication', async () => {
+      const store = createStore();
+      mockApi
+        .onPost('/login', {email: 'guest@example.com', password: 'pass123'})
+        .reply(200, {email: 'guest@example.com', token: 'session-token'})
+        .onGet('/favorite').reply(200, [favoriteResponse]);
+
+      await store.dispatch(login({email: 'guest@example.com', password: 'pass123'}));
+
+      expect(store.getState().user.authorizationStatus).toBe(AuthorizationStatus.Auth);
+      expect(store.getState().user.userEmail).toBe('guest@example.com');
+      expect(localStorage.getItem(TOKEN_KEY)).toBe('session-token');
+    });
+
+    it('clears the session and favorite data after logout', async () => {
+      const store = createStore();
+      store.dispatch(setAuthorizationStatus(AuthorizationStatus.Auth));
+      store.dispatch(loadFavoriteOffers([{...detailedOffer, isFavorite: true}]));
+      localStorage.setItem(TOKEN_KEY, 'session-token');
+      mockApi.onDelete('/logout').reply(200);
+
+      await store.dispatch(logout());
+
+      expect(store.getState().user.authorizationStatus).toBe(AuthorizationStatus.NoAuth);
+      expect(store.getState().favorites.favoriteOffers).toEqual([]);
+      expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
+    });
   });
 
   afterEach(() => {
